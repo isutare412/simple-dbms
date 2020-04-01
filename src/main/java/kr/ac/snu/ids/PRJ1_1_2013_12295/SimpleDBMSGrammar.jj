@@ -10,7 +10,7 @@ package kr.ac.snu.ids.PRJ1_1_2013_12295;
 
 public class SimpleDBMSParser
 {
-  public static final String PROMPT = "DB_2013_12295> ";
+  public static final String PROMPT = "DB_2013-12295> ";
 
   enum QueryType
   {
@@ -19,6 +19,7 @@ public class SimpleDBMSParser
     DROP_TABLE,
     DESC,
     SHOW_TABLES,
+    SELECT,
   }
 
   public static void main(String args[]) throws ParseException
@@ -59,6 +60,9 @@ public class SimpleDBMSParser
       case SHOW_TABLES:
         System.out.println("\'SHOW TABLES\' requested");
         break;
+      case SELECT:
+        System.out.println("\'SELECT\' requested");
+        break;
       default:
         System.out.println("unknown message accepted");
         break;
@@ -81,10 +85,17 @@ TOKEN : /* Keywords */
 | < DROP : "drop" >
 | < DESC : "desc" >
 | < SHOW : "show" >
+| < SELECT : "select" >
 | < TABLE : "table" >
 | < TABLES : "tables" >
 | < NOT : "not" >
 | < NULL : "null" >
+| < IS : "is" >
+| < AS : "as" >
+| < AND : "and" >
+| < OR : "or" >
+| < FROM : "from" >
+| < WHERE : "where" >
 | < PRIMARY : "primary" >
 | < FOREIGN : "foreign" >
 | < KEY : "key" >
@@ -97,16 +108,20 @@ TOKEN :
 | < LEFT_PAREN : "(" >
 | < RIGHT_PAREN : ")" >
 | < COMMA : "," >
+| < PERIOD : "." >
 | < UNDERSCORE : "_" >
+| < QUOTE : "'" >
 | < INT_VALUE : (< SIGN >)? (< DIGIT >)+>
 | < DATE_VALUE : < NNNN > "-" < NN > "-" < NN > >
 | < NNNN : < DIGIT > < DIGIT > < DIGIT > < DIGIT > >
 | < NN : < DIGIT > < DIGIT > >
 | < SIGN : "+" | "-" >
+| < ASTERISK : "*" >
+| < COMP_OP : "<" | ">" | "=" | ">=" | "<=" | "!=" >
 | < DIGIT : [ "0"-"9" ] >
 | < LEGAL_IDENTIFIER : < ALPHABET > (< ALPHABET > | < UNDERSCORE >)* >
 | < ALPHABET : [ "a"-"z", "A"-"Z" ] >
-| < QUOTE : "'" >
+| < CHAR_STRING : < QUOTE > (< NON_QUOTE_CHARACTER>)* < QUOTE > >
 | < NON_QUOTE_SPECIAL_CHARACTER : ["!", "@", "#", "$", "%", "^", "&", "-",
     "{", "}", "[", "]", "~", "`", "+", "*", "_", "=", "\\", "(", ")", "<", ">",
     "?", ",", ".", "\n", "\t", "\r", ":", ";", "|", "/"] >
@@ -151,6 +166,7 @@ QueryType query() :
   | type = dropTableQuery()
   | type = descTableQuery()
   | type = showTablesQuery()
+  | type = selectQuery()
   )
   {
     return type;
@@ -194,6 +210,17 @@ QueryType showTablesQuery() :
   < SHOW > < TABLES >
   {
     return QueryType.SHOW_TABLES;
+  }
+}
+
+QueryType selectQuery() :
+{}
+{
+  < SELECT >
+  selectList()
+  tableExpression()
+  {
+    return QueryType.SELECT;
   }
 }
 
@@ -251,6 +278,79 @@ void referentialConstraint() :
   columnNameList()
 }
 
+void selectList() :
+{}
+{
+  < ASTERISK >
+| (
+    selectedColumn()
+    (
+      < COMMA >
+      selectedColumn()
+    )*
+  )
+}
+
+void selectedColumn() :
+{}
+{
+  (
+    // as both tableName() and columnName() can match <LEGAL_IDENTIFIER>,
+    // we should look ahead 2 tokens for choice.
+    LOOKAHEAD(2)
+    tableName()
+    < PERIOD >
+  )?
+  columnName()
+  (
+    < AS >
+    columnName()
+  )?
+}
+
+void tableExpression() :
+{}
+{
+  fromClause()
+  (
+    whereClause()
+  )?
+}
+
+void fromClause() :
+{}
+{
+  < FROM >
+  tableReferenceList()
+}
+
+void whereClause() :
+{}
+{
+  < WHERE >
+  booleanValueExpression()
+}
+
+void tableReferenceList() :
+{}
+{
+  referedTable()
+  (
+    < COMMA >
+    referedTable()
+  )*
+}
+
+void referedTable() :
+{}
+{
+  tableName()
+  (
+    < AS >
+    tableName()
+  )?
+}
+
 void columnNameList() :
 {}
 {
@@ -261,6 +361,112 @@ void columnNameList() :
     columnName()
   )*
   < RIGHT_PAREN >
+}
+
+void booleanValueExpression() :
+{}
+{
+  booleanTerm()
+  (
+    < OR >
+    booleanTerm()
+  )*
+}
+
+void booleanTerm() :
+{}
+{
+  booleanFactor()
+  (
+    < AND >
+    booleanFactor()
+  )*
+}
+
+void booleanFactor() :
+{}
+{
+  (< NOT >)?
+  booleanTest()
+}
+
+void booleanTest() :
+{}
+{
+  predicate()
+| parenthesizedBooleanExpression()
+}
+
+void parenthesizedBooleanExpression() :
+{}
+{
+  < LEFT_PAREN >
+  booleanValueExpression()
+  < RIGHT_PAREN >
+}
+
+void predicate() :
+{}
+{
+  // as both tableName() and columnName() can match (<LEGAL_IDENTIFIER> <COMMA>
+  // <LEGA_IDENTIFIER>), we should look ahead 4 tokens for choice.
+  LOOKAHEAD(4)
+  comparisionPredicate()
+| nullPredicate()
+}
+
+void comparisionPredicate() :
+{}
+{
+  compOperand()
+  < COMP_OP >
+  compOperand()
+}
+
+void nullPredicate() :
+{}
+{
+  (
+    // as both tableName() and columnName() can match <LEGAL_IDENTIFIER>,
+    // we should look ahead 2 tokens for choice.
+    LOOKAHEAD(2)
+    tableName()
+    < PERIOD >
+  )?
+  columnName()
+  nullOperation()
+}
+
+void compOperand() :
+{}
+{
+  comparableValue()
+| (
+    (
+      // as both tableName() and columnName() can match <LEGAL_IDENTIFIER>,
+      // we should look ahead 2 tokens for choice.
+      LOOKAHEAD(2)
+      tableName()
+      < PERIOD >
+    )?
+    columnName()
+  )
+}
+
+void comparableValue() :
+{}
+{
+  < INT_VALUE >
+| < CHAR_STRING >
+| < DATE_VALUE >
+}
+
+void nullOperation() :
+{}
+{
+  < IS >
+  (< NOT >)?
+  < NULL >
 }
 
 void dataType() :

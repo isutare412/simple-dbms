@@ -12,6 +12,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     DROP_TABLE,
     DESC,
     SHOW_TABLES,
+    SELECT,
   }
 
   public static void main(String args[]) throws ParseException
@@ -52,6 +53,9 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       case SHOW_TABLES:
         System.out.println("\'SHOW TABLES\' requested");
         break;
+      case SELECT:
+        System.out.println("\'SELECT\' requested");
+        break;
       default:
         System.out.println("unknown message accepted");
         break;
@@ -64,7 +68,8 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     case CREATE:
     case DROP:
     case DESC:
-    case SHOW:{
+    case SHOW:
+    case SELECT:{
       queryList();
       break;
       }
@@ -91,7 +96,8 @@ printMessage(type);
       case CREATE:
       case DROP:
       case DESC:
-      case SHOW:{
+      case SHOW:
+      case SELECT:{
         ;
         break;
         }
@@ -118,6 +124,10 @@ printMessage(type);
       }
     case SHOW:{
       type = showTablesQuery();
+      break;
+      }
+    case SELECT:{
+      type = selectQuery();
       break;
       }
     default:
@@ -157,6 +167,14 @@ printMessage(type);
     jj_consume_token(SHOW);
     jj_consume_token(TABLES);
 {if ("" != null) return QueryType.SHOW_TABLES;}
+    throw new Error("Missing return statement in function");
+}
+
+  static final public QueryType selectQuery() throws ParseException {
+    jj_consume_token(SELECT);
+    selectList();
+    tableExpression();
+{if ("" != null) return QueryType.SELECT;}
     throw new Error("Missing return statement in function");
 }
 
@@ -245,10 +263,83 @@ printMessage(type);
     columnNameList();
 }
 
-  static final public void columnNameList() throws ParseException {
-    jj_consume_token(LEFT_PAREN);
+  static final public void selectList() throws ParseException {
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case ASTERISK:{
+      jj_consume_token(ASTERISK);
+      break;
+      }
+    case LEGAL_IDENTIFIER:{
+      selectedColumn();
+      label_3:
+      while (true) {
+        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+        case COMMA:{
+          ;
+          break;
+          }
+        default:
+          jj_la1[7] = jj_gen;
+          break label_3;
+        }
+        jj_consume_token(COMMA);
+        selectedColumn();
+      }
+      break;
+      }
+    default:
+      jj_la1[8] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
+}
+
+  static final public void selectedColumn() throws ParseException {
+    if (jj_2_1(2)) {
+      tableName();
+      jj_consume_token(PERIOD);
+    } else {
+      ;
+    }
     columnName();
-    label_3:
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case AS:{
+      jj_consume_token(AS);
+      columnName();
+      break;
+      }
+    default:
+      jj_la1[9] = jj_gen;
+      ;
+    }
+}
+
+  static final public void tableExpression() throws ParseException {
+    fromClause();
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case WHERE:{
+      whereClause();
+      break;
+      }
+    default:
+      jj_la1[10] = jj_gen;
+      ;
+    }
+}
+
+  static final public void fromClause() throws ParseException {
+    jj_consume_token(FROM);
+    tableReferenceList();
+}
+
+  static final public void whereClause() throws ParseException {
+    jj_consume_token(WHERE);
+    booleanValueExpression();
+}
+
+  static final public void tableReferenceList() throws ParseException {
+    referedTable();
+    label_4:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case COMMA:{
@@ -256,13 +347,215 @@ printMessage(type);
         break;
         }
       default:
-        jj_la1[7] = jj_gen;
-        break label_3;
+        jj_la1[11] = jj_gen;
+        break label_4;
+      }
+      jj_consume_token(COMMA);
+      referedTable();
+    }
+}
+
+  static final public void referedTable() throws ParseException {
+    tableName();
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case AS:{
+      jj_consume_token(AS);
+      tableName();
+      break;
+      }
+    default:
+      jj_la1[12] = jj_gen;
+      ;
+    }
+}
+
+  static final public void columnNameList() throws ParseException {
+    jj_consume_token(LEFT_PAREN);
+    columnName();
+    label_5:
+    while (true) {
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case COMMA:{
+        ;
+        break;
+        }
+      default:
+        jj_la1[13] = jj_gen;
+        break label_5;
       }
       jj_consume_token(COMMA);
       columnName();
     }
     jj_consume_token(RIGHT_PAREN);
+}
+
+  static final public void booleanValueExpression() throws ParseException {
+    booleanTerm();
+    label_6:
+    while (true) {
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case OR:{
+        ;
+        break;
+        }
+      default:
+        jj_la1[14] = jj_gen;
+        break label_6;
+      }
+      jj_consume_token(OR);
+      booleanTerm();
+    }
+}
+
+  static final public void booleanTerm() throws ParseException {
+    booleanFactor();
+    label_7:
+    while (true) {
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case AND:{
+        ;
+        break;
+        }
+      default:
+        jj_la1[15] = jj_gen;
+        break label_7;
+      }
+      jj_consume_token(AND);
+      booleanFactor();
+    }
+}
+
+  static final public void booleanFactor() throws ParseException {
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case NOT:{
+      jj_consume_token(NOT);
+      break;
+      }
+    default:
+      jj_la1[16] = jj_gen;
+      ;
+    }
+    booleanTest();
+}
+
+  static final public void booleanTest() throws ParseException {
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case INT_VALUE:
+    case DATE_VALUE:
+    case LEGAL_IDENTIFIER:
+    case CHAR_STRING:{
+      predicate();
+      break;
+      }
+    case LEFT_PAREN:{
+      parenthesizedBooleanExpression();
+      break;
+      }
+    default:
+      jj_la1[17] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
+}
+
+  static final public void parenthesizedBooleanExpression() throws ParseException {
+    jj_consume_token(LEFT_PAREN);
+    booleanValueExpression();
+    jj_consume_token(RIGHT_PAREN);
+}
+
+  static final public void predicate() throws ParseException {
+    if (jj_2_2(4)) {
+      comparisionPredicate();
+    } else {
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case LEGAL_IDENTIFIER:{
+        nullPredicate();
+        break;
+        }
+      default:
+        jj_la1[18] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+    }
+}
+
+  static final public void comparisionPredicate() throws ParseException {
+    compOperand();
+    jj_consume_token(COMP_OP);
+    compOperand();
+}
+
+  static final public void nullPredicate() throws ParseException {
+    if (jj_2_3(2)) {
+      tableName();
+      jj_consume_token(PERIOD);
+    } else {
+      ;
+    }
+    columnName();
+    nullOperation();
+}
+
+  static final public void compOperand() throws ParseException {
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case INT_VALUE:
+    case DATE_VALUE:
+    case CHAR_STRING:{
+      comparableValue();
+      break;
+      }
+    case LEGAL_IDENTIFIER:{
+      if (jj_2_4(2)) {
+        tableName();
+        jj_consume_token(PERIOD);
+      } else {
+        ;
+      }
+      columnName();
+      break;
+      }
+    default:
+      jj_la1[19] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
+}
+
+  static final public void comparableValue() throws ParseException {
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case INT_VALUE:{
+      jj_consume_token(INT_VALUE);
+      break;
+      }
+    case CHAR_STRING:{
+      jj_consume_token(CHAR_STRING);
+      break;
+      }
+    case DATE_VALUE:{
+      jj_consume_token(DATE_VALUE);
+      break;
+      }
+    default:
+      jj_la1[20] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
+}
+
+  static final public void nullOperation() throws ParseException {
+    jj_consume_token(IS);
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case NOT:{
+      jj_consume_token(NOT);
+      break;
+      }
+    default:
+      jj_la1[21] = jj_gen;
+      ;
+    }
+    jj_consume_token(NULL);
 }
 
   static final public void dataType() throws ParseException {
@@ -283,7 +576,7 @@ printMessage(type);
       break;
       }
     default:
-      jj_la1[8] = jj_gen;
+      jj_la1[22] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -297,6 +590,110 @@ printMessage(type);
     jj_consume_token(LEGAL_IDENTIFIER);
 }
 
+  static private boolean jj_2_1(int xla)
+ {
+    jj_la = xla; jj_lastpos = jj_scanpos = token;
+    try { return (!jj_3_1()); }
+    catch(LookaheadSuccess ls) { return true; }
+    finally { jj_save(0, xla); }
+  }
+
+  static private boolean jj_2_2(int xla)
+ {
+    jj_la = xla; jj_lastpos = jj_scanpos = token;
+    try { return (!jj_3_2()); }
+    catch(LookaheadSuccess ls) { return true; }
+    finally { jj_save(1, xla); }
+  }
+
+  static private boolean jj_2_3(int xla)
+ {
+    jj_la = xla; jj_lastpos = jj_scanpos = token;
+    try { return (!jj_3_3()); }
+    catch(LookaheadSuccess ls) { return true; }
+    finally { jj_save(2, xla); }
+  }
+
+  static private boolean jj_2_4(int xla)
+ {
+    jj_la = xla; jj_lastpos = jj_scanpos = token;
+    try { return (!jj_3_4()); }
+    catch(LookaheadSuccess ls) { return true; }
+    finally { jj_save(3, xla); }
+  }
+
+  static private boolean jj_3_4()
+ {
+    if (jj_scan_token(43)) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_11()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_4()) jj_scanpos = xsp;
+    if (jj_scan_token(43)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_8()
+ {
+    if (jj_3R_9()) return true;
+    if (jj_scan_token(COMP_OP)) return true;
+    if (jj_3R_9()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_9()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (!jj_3R_10()) return false;
+    jj_scanpos = xsp;
+    if (jj_3R_11()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_10()
+ {
+    if (jj_3R_12()) return true;
+    return false;
+  }
+
+  static private boolean jj_3_1()
+ {
+    if (jj_scan_token(43)) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_12()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (!jj_scan_token(35)) return false;
+    jj_scanpos = xsp;
+    if (!jj_scan_token(45)) return false;
+    jj_scanpos = xsp;
+    if (jj_scan_token(36)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_2()
+ {
+    if (jj_3R_8()) return true;
+    return false;
+  }
+
+  static private boolean jj_3_3()
+ {
+    if (jj_scan_token(43)) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
   static private boolean jj_initialized_once = false;
   /** Generated Token Manager. */
   static public SimpleDBMSParserTokenManager token_source;
@@ -306,8 +703,10 @@ printMessage(type);
   /** Next token. */
   static public Token jj_nt;
   static private int jj_ntk;
+  static private Token jj_scanpos, jj_lastpos;
+  static private int jj_la;
   static private int jj_gen;
-  static final private int[] jj_la1 = new int[9];
+  static final private int[] jj_la1 = new int[23];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static {
@@ -315,11 +714,14 @@ printMessage(type);
 	   jj_la1_init_1();
 	}
 	private static void jj_la1_init_0() {
-	   jj_la1_0 = new int[] {0x1e20,0x1e00,0x1e00,0x1000000,0x60000,0x8000,0x60000,0x1000000,0x1c0,};
+	   jj_la1_0 = new int[] {0x3e20,0x3e00,0x3e00,0x80000000,0x3000000,0x10000,0x3000000,0x80000000,0x0,0x80000,0x800000,0x80000000,0x80000,0x80000000,0x200000,0x100000,0x10000,0x20000000,0x0,0x0,0x0,0x10000,0x1c0,};
 	}
 	private static void jj_la1_init_1() {
-	   jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x1,0x0,0x0,0x0,0x0,};
+	   jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x800,0x0,0x0,0x0,0x900,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x2818,0x800,0x2818,0x2018,0x0,0x0,};
 	}
+  static final private JJCalls[] jj_2_rtns = new JJCalls[4];
+  static private boolean jj_rescan = false;
+  static private int jj_gc = 0;
 
   /** Constructor with InputStream. */
   public SimpleDBMSParser(java.io.InputStream stream) {
@@ -339,7 +741,8 @@ printMessage(type);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 9; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 23; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
   /** Reinitialise. */
@@ -353,7 +756,8 @@ printMessage(type);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 9; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 23; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
   /** Constructor. */
@@ -370,7 +774,8 @@ printMessage(type);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 9; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 23; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
   /** Reinitialise. */
@@ -388,7 +793,8 @@ printMessage(type);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 9; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 23; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
   /** Constructor with generated Token Manager. */
@@ -404,7 +810,8 @@ printMessage(type);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 9; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 23; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
   /** Reinitialise. */
@@ -413,7 +820,8 @@ printMessage(type);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 9; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 23; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
   static private Token jj_consume_token(int kind) throws ParseException {
@@ -423,11 +831,50 @@ printMessage(type);
 	 jj_ntk = -1;
 	 if (token.kind == kind) {
 	   jj_gen++;
+	   if (++jj_gc > 100) {
+		 jj_gc = 0;
+		 for (int i = 0; i < jj_2_rtns.length; i++) {
+		   JJCalls c = jj_2_rtns[i];
+		   while (c != null) {
+			 if (c.gen < jj_gen) c.first = null;
+			 c = c.next;
+		   }
+		 }
+	   }
 	   return token;
 	 }
 	 token = oldToken;
 	 jj_kind = kind;
 	 throw generateParseException();
+  }
+
+  @SuppressWarnings("serial")
+  static private final class LookaheadSuccess extends java.lang.Error {
+    @Override
+    public Throwable fillInStackTrace() {
+      return this;
+    }
+  }
+  static private final LookaheadSuccess jj_ls = new LookaheadSuccess();
+  static private boolean jj_scan_token(int kind) {
+	 if (jj_scanpos == jj_lastpos) {
+	   jj_la--;
+	   if (jj_scanpos.next == null) {
+		 jj_lastpos = jj_scanpos = jj_scanpos.next = token_source.getNextToken();
+	   } else {
+		 jj_lastpos = jj_scanpos = jj_scanpos.next;
+	   }
+	 } else {
+	   jj_scanpos = jj_scanpos.next;
+	 }
+	 if (jj_rescan) {
+	   int i = 0; Token tok = token;
+	   while (tok != null && tok != jj_scanpos) { i++; tok = tok.next; }
+	   if (tok != null) jj_add_error_token(kind, i);
+	 }
+	 if (jj_scanpos.kind != kind) return true;
+	 if (jj_la == 0 && jj_scanpos == jj_lastpos) throw jj_ls;
+	 return false;
   }
 
 
@@ -460,16 +907,56 @@ printMessage(type);
   static private java.util.List<int[]> jj_expentries = new java.util.ArrayList<int[]>();
   static private int[] jj_expentry;
   static private int jj_kind = -1;
+  static private int[] jj_lasttokens = new int[100];
+  static private int jj_endpos;
+
+  static private void jj_add_error_token(int kind, int pos) {
+	 if (pos >= 100) {
+		return;
+	 }
+
+	 if (pos == jj_endpos + 1) {
+	   jj_lasttokens[jj_endpos++] = kind;
+	 } else if (jj_endpos != 0) {
+	   jj_expentry = new int[jj_endpos];
+
+	   for (int i = 0; i < jj_endpos; i++) {
+		 jj_expentry[i] = jj_lasttokens[i];
+	   }
+
+	   for (int[] oldentry : jj_expentries) {
+		 if (oldentry.length == jj_expentry.length) {
+		   boolean isMatched = true;
+
+		   for (int i = 0; i < jj_expentry.length; i++) {
+			 if (oldentry[i] != jj_expentry[i]) {
+			   isMatched = false;
+			   break;
+			 }
+
+		   }
+		   if (isMatched) {
+			 jj_expentries.add(jj_expentry);
+			 break;
+		   }
+		 }
+	   }
+
+	   if (pos != 0) {
+		 jj_lasttokens[(jj_endpos = pos) - 1] = kind;
+	   }
+	 }
+  }
 
   /** Generate ParseException. */
   static public ParseException generateParseException() {
 	 jj_expentries.clear();
-	 boolean[] la1tokens = new boolean[37];
+	 boolean[] la1tokens = new boolean[48];
 	 if (jj_kind >= 0) {
 	   la1tokens[jj_kind] = true;
 	   jj_kind = -1;
 	 }
-	 for (int i = 0; i < 9; i++) {
+	 for (int i = 0; i < 23; i++) {
 	   if (jj_la1[i] == jj_gen) {
 		 for (int j = 0; j < 32; j++) {
 		   if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -481,13 +968,16 @@ printMessage(type);
 		 }
 	   }
 	 }
-	 for (int i = 0; i < 37; i++) {
+	 for (int i = 0; i < 48; i++) {
 	   if (la1tokens[i]) {
 		 jj_expentry = new int[1];
 		 jj_expentry[0] = i;
 		 jj_expentries.add(jj_expentry);
 	   }
 	 }
+	 jj_endpos = 0;
+	 jj_rescan_token();
+	 jj_add_error_token(0, 0);
 	 int[][] exptokseq = new int[jj_expentries.size()][];
 	 for (int i = 0; i < jj_expentries.size(); i++) {
 	   exptokseq[i] = jj_expentries.get(i);
@@ -508,6 +998,49 @@ printMessage(type);
 
   /** Disable tracing. */
   static final public void disable_tracing() {
+  }
+
+  static private void jj_rescan_token() {
+	 jj_rescan = true;
+	 for (int i = 0; i < 4; i++) {
+	   try {
+		 JJCalls p = jj_2_rtns[i];
+
+		 do {
+		   if (p.gen > jj_gen) {
+			 jj_la = p.arg; jj_lastpos = jj_scanpos = p.first;
+			 switch (i) {
+			   case 0: jj_3_1(); break;
+			   case 1: jj_3_2(); break;
+			   case 2: jj_3_3(); break;
+			   case 3: jj_3_4(); break;
+			 }
+		   }
+		   p = p.next;
+		 } while (p != null);
+
+		 } catch(LookaheadSuccess ls) { }
+	 }
+	 jj_rescan = false;
+  }
+
+  static private void jj_save(int index, int xla) {
+	 JJCalls p = jj_2_rtns[index];
+	 while (p.gen > jj_gen) {
+	   if (p.next == null) { p = p.next = new JJCalls(); break; }
+	   p = p.next;
+	 }
+
+	 p.gen = jj_gen + xla - jj_la; 
+	 p.first = token;
+	 p.arg = xla;
+  }
+
+  static final class JJCalls {
+	 int gen;
+	 Token first;
+	 int arg;
+	 JJCalls next;
   }
 
 }
