@@ -49,7 +49,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
 
   static final public void command() throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-    case CREATE_TABLE:{
+    case CREATE:{
       queryList();
       break;
       }
@@ -73,7 +73,7 @@ System.exit(0);
       jj_consume_token(SEMICOLON);
 printMessage(type);
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case CREATE_TABLE:{
+      case CREATE:{
         ;
         break;
         }
@@ -91,7 +91,8 @@ printMessage(type);
 }
 
   static final public PrintType createTableQuery() throws ParseException {
-    jj_consume_token(CREATE_TABLE);
+    jj_consume_token(CREATE);
+    jj_consume_token(TABLE);
     tableName();
     tableElementList();
 {if ("" != null) return PrintType.CREATE_TABLE;}
@@ -124,8 +125,8 @@ printMessage(type);
       columnDefinition();
       break;
       }
-    case PRIMARY_KEY:
-    case FOREIGN_KEY:{
+    case PRIMARY:
+    case FOREIGN:{
       tableConstraintDefinition();
       break;
       }
@@ -140,8 +141,9 @@ printMessage(type);
     columnName();
     dataType();
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-    case NOT_NULL:{
-      jj_consume_token(NOT_NULL);
+    case NOT:{
+      jj_consume_token(NOT);
+      jj_consume_token(NULL);
       break;
       }
     default:
@@ -152,11 +154,11 @@ printMessage(type);
 
   static final public void tableConstraintDefinition() throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-    case PRIMARY_KEY:{
+    case PRIMARY:{
       primaryKeyConstraint();
       break;
       }
-    case FOREIGN_KEY:{
+    case FOREIGN:{
       referentialConstraint();
       break;
       }
@@ -168,12 +170,14 @@ printMessage(type);
 }
 
   static final public void primaryKeyConstraint() throws ParseException {
-    jj_consume_token(PRIMARY_KEY);
+    jj_consume_token(PRIMARY);
+    jj_consume_token(KEY);
     columnNameList();
 }
 
   static final public void referentialConstraint() throws ParseException {
-    jj_consume_token(FOREIGN_KEY);
+    jj_consume_token(FOREIGN);
+    jj_consume_token(KEY);
     columnNameList();
     jj_consume_token(REFERENCES);
     tableName();
@@ -248,7 +252,7 @@ printMessage(type);
 	   jj_la1_init_0();
 	}
 	private static void jj_la1_init_0() {
-	   jj_la1_0 = new int[] {0x220,0x200,0x20000,0x401800,0x400,0x1800,0x20000,0x1c0,};
+	   jj_la1_0 = new int[] {0x220,0x200,0x100000,0x2006000,0x800,0x6000,0x100000,0x1c0,};
 	}
 
   /** Constructor with InputStream. */
@@ -394,7 +398,7 @@ printMessage(type);
   /** Generate ParseException. */
   static public ParseException generateParseException() {
 	 jj_expentries.clear();
-	 boolean[] la1tokens = new boolean[24];
+	 boolean[] la1tokens = new boolean[27];
 	 if (jj_kind >= 0) {
 	   la1tokens[jj_kind] = true;
 	   jj_kind = -1;
@@ -408,7 +412,7 @@ printMessage(type);
 		 }
 	   }
 	 }
-	 for (int i = 0; i < 24; i++) {
+	 for (int i = 0; i < 27; i++) {
 	   if (la1tokens[i]) {
 		 jj_expentry = new int[1];
 		 jj_expentry[0] = i;

@@ -65,10 +65,13 @@ TOKEN : /* Keywords */
 | < INT : "int" >
 | < CHAR : "char" >
 | < DATE : "date" >
-| < CREATE_TABLE : "create table" >
-| < NOT_NULL : "not null" >
-| < PRIMARY_KEY : "primary key" >
-| < FOREIGN_KEY : "foreign key" >
+| < CREATE : "create" >
+| < TABLE : "table" >
+| < NOT : "not" >
+| < NULL : "null" >
+| < PRIMARY : "primary" >
+| < FOREIGN : "foreign" >
+| < KEY : "key" >
 | < REFERENCES : "references" >
 }
 
@@ -127,7 +130,7 @@ PrintType query() :
 PrintType createTableQuery() :
 {}
 {
-  < CREATE_TABLE >
+  < CREATE > < TABLE >
   tableName()
   tableElementList()
   {
@@ -161,7 +164,7 @@ void columnDefinition() :
   columnName()
   dataType()
   (
-    < NOT_NULL >
+    < NOT > < NULL >
   )?
 }
 
@@ -175,14 +178,14 @@ void tableConstraintDefinition() :
 void primaryKeyConstraint() :
 {}
 {
-  < PRIMARY_KEY >
+  < PRIMARY > < KEY >
   columnNameList()
 }
 
 void referentialConstraint() :
 {}
 {
-  < FOREIGN_KEY >
+  < FOREIGN > < KEY >
   columnNameList()
   < REFERENCES >
   tableName()

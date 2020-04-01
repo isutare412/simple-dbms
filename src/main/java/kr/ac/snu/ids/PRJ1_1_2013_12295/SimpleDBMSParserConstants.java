@@ -19,35 +19,41 @@ public interface SimpleDBMSParserConstants {
   /** RegularExpression Id. */
   int DATE = 8;
   /** RegularExpression Id. */
-  int CREATE_TABLE = 9;
+  int CREATE = 9;
   /** RegularExpression Id. */
-  int NOT_NULL = 10;
+  int TABLE = 10;
   /** RegularExpression Id. */
-  int PRIMARY_KEY = 11;
+  int NOT = 11;
   /** RegularExpression Id. */
-  int FOREIGN_KEY = 12;
+  int NULL = 12;
   /** RegularExpression Id. */
-  int REFERENCES = 13;
+  int PRIMARY = 13;
   /** RegularExpression Id. */
-  int SEMICOLON = 14;
+  int FOREIGN = 14;
   /** RegularExpression Id. */
-  int LEFT_PAREN = 15;
+  int KEY = 15;
   /** RegularExpression Id. */
-  int RIGHT_PAREN = 16;
+  int REFERENCES = 16;
   /** RegularExpression Id. */
-  int COMMA = 17;
+  int SEMICOLON = 17;
   /** RegularExpression Id. */
-  int UNDERSCORE = 18;
+  int LEFT_PAREN = 18;
   /** RegularExpression Id. */
-  int INT_VALUE = 19;
+  int RIGHT_PAREN = 19;
   /** RegularExpression Id. */
-  int SIGN = 20;
+  int COMMA = 20;
   /** RegularExpression Id. */
-  int DIGIT = 21;
+  int UNDERSCORE = 21;
   /** RegularExpression Id. */
-  int LEGAL_IDENTIFIER = 22;
+  int INT_VALUE = 22;
   /** RegularExpression Id. */
-  int ALPHABET = 23;
+  int SIGN = 23;
+  /** RegularExpression Id. */
+  int DIGIT = 24;
+  /** RegularExpression Id. */
+  int LEGAL_IDENTIFIER = 25;
+  /** RegularExpression Id. */
+  int ALPHABET = 26;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -63,10 +69,13 @@ public interface SimpleDBMSParserConstants {
     "\"int\"",
     "\"char\"",
     "\"date\"",
-    "\"create table\"",
-    "\"not null\"",
-    "\"primary key\"",
-    "\"foreign key\"",
+    "\"create\"",
+    "\"table\"",
+    "\"not\"",
+    "\"null\"",
+    "\"primary\"",
+    "\"foreign\"",
+    "\"key\"",
     "\"references\"",
     "\";\"",
     "\"(\"",
