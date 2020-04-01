@@ -3,13 +3,18 @@
 package kr.ac.snu.ids.PRJ1_1_2013_12295;
 
 public class SimpleDBMSParser implements SimpleDBMSParserConstants {
-  public static final int PRINT_SYNTAX_ERROR = 0;
-  public static final int PRINT_CREATE_TABLE = 1;
+  public static final String PROMPT = "DB_2013_12295> ";
+
+  enum PrintType
+  {
+    SYNTAX_ERROR,
+    CREATE_TABLE,
+  }
 
   public static void main(String args[]) throws ParseException
   {
     SimpleDBMSParser parser = new SimpleDBMSParser(System.in);
-    System.out.print("DB_2019-12345> ");
+    System.out.print(PROMPT);
 
     while (true)
     {
@@ -19,24 +24,27 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       }
       catch (Exception e)
       {
-        printMessage(PRINT_SYNTAX_ERROR);
+        printMessage(PrintType.SYNTAX_ERROR);
         SimpleDBMSParser.ReInit(System.in);
       }
     }
   }
 
-  public static void printMessage(int q)
+  public static void printMessage(PrintType t)
   {
-    switch(q)
+    switch(t)
     {
-      case PRINT_SYNTAX_ERROR:
+      case SYNTAX_ERROR:
         System.out.println("Syntax error");
         break;
-      case PRINT_CREATE_TABLE:
+      case CREATE_TABLE:
         System.out.println("\'CREATE TABLE\' requested");
         break;
+      default:
+        System.out.println("unknown message accepted");
+        break;
     }
-    System.out.print("DB_2019-12345> ");
+    System.out.print(PROMPT);
   }
 
   static final public void command() throws ParseException {
@@ -58,12 +66,12 @@ System.exit(0);
     }
 }
 
-  static final public void queryList() throws ParseException {int q;
+  static final public void queryList() throws ParseException {PrintType type;
     label_1:
     while (true) {
-      q = query();
+      type = query();
       jj_consume_token(SEMICOLON);
-printMessage(q);
+printMessage(type);
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case CREATE_TABLE:{
         ;
@@ -76,17 +84,18 @@ printMessage(q);
     }
 }
 
-  static final public int query() throws ParseException {int q;
-    createTableQuery();
-q = PRINT_CREATE_TABLE;
-{if ("" != null) return q;}
+  static final public PrintType query() throws ParseException {PrintType type;
+    type = createTableQuery();
+{if ("" != null) return type;}
     throw new Error("Missing return statement in function");
 }
 
-  static final public void createTableQuery() throws ParseException {
+  static final public PrintType createTableQuery() throws ParseException {
     jj_consume_token(CREATE_TABLE);
     tableName();
     tableElementList();
+{if ("" != null) return PrintType.CREATE_TABLE;}
+    throw new Error("Missing return statement in function");
 }
 
   static final public void tableElementList() throws ParseException {
