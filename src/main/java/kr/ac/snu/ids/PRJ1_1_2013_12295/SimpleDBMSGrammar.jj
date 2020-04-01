@@ -20,6 +20,8 @@ public class SimpleDBMSParser
     DESC,
     SHOW_TABLES,
     SELECT,
+    INSERT,
+    DELETE,
   }
 
   public static void main(String args[]) throws ParseException
@@ -63,6 +65,12 @@ public class SimpleDBMSParser
       case SELECT:
         System.out.println("\'SELECT\' requested");
         break;
+      case INSERT:
+        System.out.println("\'INSERT\' requested");
+        break;
+      case DELETE:
+        System.out.println("\'DELETE\' requested");
+        break;
       default:
         System.out.println("unknown message accepted");
         break;
@@ -86,8 +94,11 @@ TOKEN : /* Keywords */
 | < DESC : "desc" >
 | < SHOW : "show" >
 | < SELECT : "select" >
+| < INSERT : "insert" >
+| < DELETE : "delete" >
 | < TABLE : "table" >
 | < TABLES : "tables" >
+| < INTO : "into" >
 | < NOT : "not" >
 | < NULL : "null" >
 | < IS : "is" >
@@ -96,6 +107,7 @@ TOKEN : /* Keywords */
 | < OR : "or" >
 | < FROM : "from" >
 | < WHERE : "where" >
+| < VALUES : "values" >
 | < PRIMARY : "primary" >
 | < FOREIGN : "foreign" >
 | < KEY : "key" >
@@ -167,6 +179,8 @@ QueryType query() :
   | type = descTableQuery()
   | type = showTablesQuery()
   | type = selectQuery()
+  | type = insertQuery()
+  | type = deleteQuery()
   )
   {
     return type;
@@ -221,6 +235,30 @@ QueryType selectQuery() :
   tableExpression()
   {
     return QueryType.SELECT;
+  }
+}
+
+QueryType insertQuery() :
+{}
+{
+  < INSERT > < INTO >
+  tableName()
+  insertColumnsAndSource()
+  {
+    return QueryType.INSERT;
+  }
+}
+
+QueryType deleteQuery() :
+{}
+{
+  < DELETE > < FROM >
+  tableName()
+  (
+    whereClause()
+  )+
+  {
+    return QueryType.DELETE;
   }
 }
 
@@ -306,6 +344,28 @@ void selectedColumn() :
     < AS >
     columnName()
   )?
+}
+
+void insertColumnsAndSource() :
+{}
+{
+  (
+    columnNameList()
+  )?
+  valueList()
+}
+
+void valueList() :
+{}
+{
+  < VALUES >
+  < LEFT_PAREN >
+  value()
+  (
+    < COMMA >
+    value()
+  )*
+  < RIGHT_PAREN >
 }
 
 void tableExpression() :
@@ -451,6 +511,13 @@ void compOperand() :
     )?
     columnName()
   )
+}
+
+void value() :
+{}
+{
+  < NULL >
+| comparableValue()
 }
 
 void comparableValue() :
