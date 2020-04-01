@@ -47,13 +47,25 @@ public interface SimpleDBMSParserConstants {
   /** RegularExpression Id. */
   int INT_VALUE = 22;
   /** RegularExpression Id. */
-  int SIGN = 23;
+  int DATE_VALUE = 23;
   /** RegularExpression Id. */
-  int DIGIT = 24;
+  int NNNN = 24;
   /** RegularExpression Id. */
-  int LEGAL_IDENTIFIER = 25;
+  int NN = 25;
   /** RegularExpression Id. */
-  int ALPHABET = 26;
+  int SIGN = 26;
+  /** RegularExpression Id. */
+  int DIGIT = 27;
+  /** RegularExpression Id. */
+  int LEGAL_IDENTIFIER = 28;
+  /** RegularExpression Id. */
+  int ALPHABET = 29;
+  /** RegularExpression Id. */
+  int QUOTE = 30;
+  /** RegularExpression Id. */
+  int NON_QUOTE_SPECIAL_CHARACTER = 31;
+  /** RegularExpression Id. */
+  int NON_QUOTE_CHARACTER = 32;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -83,10 +95,16 @@ public interface SimpleDBMSParserConstants {
     "\",\"",
     "\"_\"",
     "<INT_VALUE>",
+    "<DATE_VALUE>",
+    "<NNNN>",
+    "<NN>",
     "<SIGN>",
     "<DIGIT>",
     "<LEGAL_IDENTIFIER>",
     "<ALPHABET>",
+    "\"\\\'\"",
+    "<NON_QUOTE_SPECIAL_CHARACTER>",
+    "<NON_QUOTE_CHARACTER>",
   };
 
 }

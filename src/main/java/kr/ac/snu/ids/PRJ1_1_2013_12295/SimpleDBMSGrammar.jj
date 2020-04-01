@@ -83,10 +83,19 @@ TOKEN :
 | < COMMA : "," >
 | < UNDERSCORE : "_" >
 | < INT_VALUE : (< SIGN >)? (< DIGIT >)+>
+| < DATE_VALUE : < NNNN > "-" < NN > "-" < NN > >
+| < NNNN : < DIGIT > < DIGIT > < DIGIT > < DIGIT > >
+| < NN : < DIGIT > < DIGIT > >
 | < SIGN : "+" | "-" >
 | < DIGIT : [ "0"-"9" ] >
 | < LEGAL_IDENTIFIER : < ALPHABET > (< ALPHABET > | < UNDERSCORE >)* >
 | < ALPHABET : [ "a"-"z", "A"-"Z" ] >
+| < QUOTE : "'" >
+| < NON_QUOTE_SPECIAL_CHARACTER : ["!", "@", "#", "$", "%", "^", "&", "-",
+    "{", "}", "[", "]", "~", "`", "+", "*", "_", "=", "\\", "(", ")", "<", ">",
+    "?", ",", ".", "\n", "\t", "\r", ":", ";", "|", "/"] >
+| < NON_QUOTE_CHARACTER : < DIGIT > | < ALPHABET > | " " |
+    < NON_QUOTE_SPECIAL_CHARACTER > >
 }
 
 void command() :
