@@ -5,10 +5,13 @@ package kr.ac.snu.ids.PRJ1_1_2013_12295;
 public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   public static final String PROMPT = "DB_2013_12295> ";
 
-  enum PrintType
+  enum QueryType
   {
     SYNTAX_ERROR,
     CREATE_TABLE,
+    DROP_TABLE,
+    DESC,
+    SHOW_TABLES,
   }
 
   public static void main(String args[]) throws ParseException
@@ -24,13 +27,13 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       }
       catch (Exception e)
       {
-        printMessage(PrintType.SYNTAX_ERROR);
+        printMessage(QueryType.SYNTAX_ERROR);
         SimpleDBMSParser.ReInit(System.in);
       }
     }
   }
 
-  public static void printMessage(PrintType t)
+  public static void printMessage(QueryType t)
   {
     switch(t)
     {
@@ -39,6 +42,15 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
         break;
       case CREATE_TABLE:
         System.out.println("\'CREATE TABLE\' requested");
+        break;
+      case DROP_TABLE:
+        System.out.println("\'DROP TABLE\' requested");
+        break;
+      case DESC:
+        System.out.println("\'DESC\' requested");
+        break;
+      case SHOW_TABLES:
+        System.out.println("\'SHOW TABLES\' requested");
         break;
       default:
         System.out.println("unknown message accepted");
@@ -49,7 +61,10 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
 
   static final public void command() throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-    case CREATE:{
+    case CREATE:
+    case DROP:
+    case DESC:
+    case SHOW:{
       queryList();
       break;
       }
@@ -66,14 +81,17 @@ System.exit(0);
     }
 }
 
-  static final public void queryList() throws ParseException {PrintType type;
+  static final public void queryList() throws ParseException {QueryType type;
     label_1:
     while (true) {
       type = query();
       jj_consume_token(SEMICOLON);
 printMessage(type);
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case CREATE:{
+      case CREATE:
+      case DROP:
+      case DESC:
+      case SHOW:{
         ;
         break;
         }
@@ -84,18 +102,61 @@ printMessage(type);
     }
 }
 
-  static final public PrintType query() throws ParseException {PrintType type;
-    type = createTableQuery();
+  static final public QueryType query() throws ParseException {QueryType type;
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case CREATE:{
+      type = createTableQuery();
+      break;
+      }
+    case DROP:{
+      type = dropTableQuery();
+      break;
+      }
+    case DESC:{
+      type = descTableQuery();
+      break;
+      }
+    case SHOW:{
+      type = showTablesQuery();
+      break;
+      }
+    default:
+      jj_la1[2] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
 {if ("" != null) return type;}
     throw new Error("Missing return statement in function");
 }
 
-  static final public PrintType createTableQuery() throws ParseException {
+  static final public QueryType createTableQuery() throws ParseException {
     jj_consume_token(CREATE);
     jj_consume_token(TABLE);
     tableName();
     tableElementList();
-{if ("" != null) return PrintType.CREATE_TABLE;}
+{if ("" != null) return QueryType.CREATE_TABLE;}
+    throw new Error("Missing return statement in function");
+}
+
+  static final public QueryType dropTableQuery() throws ParseException {
+    jj_consume_token(DROP);
+    jj_consume_token(TABLE);
+    tableName();
+{if ("" != null) return QueryType.DROP_TABLE;}
+    throw new Error("Missing return statement in function");
+}
+
+  static final public QueryType descTableQuery() throws ParseException {
+    jj_consume_token(DESC);
+    tableName();
+{if ("" != null) return QueryType.DESC;}
+    throw new Error("Missing return statement in function");
+}
+
+  static final public QueryType showTablesQuery() throws ParseException {
+    jj_consume_token(SHOW);
+    jj_consume_token(TABLES);
+{if ("" != null) return QueryType.SHOW_TABLES;}
     throw new Error("Missing return statement in function");
 }
 
@@ -110,7 +171,7 @@ printMessage(type);
         break;
         }
       default:
-        jj_la1[2] = jj_gen;
+        jj_la1[3] = jj_gen;
         break label_2;
       }
       jj_consume_token(COMMA);
@@ -131,7 +192,7 @@ printMessage(type);
       break;
       }
     default:
-      jj_la1[3] = jj_gen;
+      jj_la1[4] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -147,7 +208,7 @@ printMessage(type);
       break;
       }
     default:
-      jj_la1[4] = jj_gen;
+      jj_la1[5] = jj_gen;
       ;
     }
 }
@@ -163,7 +224,7 @@ printMessage(type);
       break;
       }
     default:
-      jj_la1[5] = jj_gen;
+      jj_la1[6] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -195,7 +256,7 @@ printMessage(type);
         break;
         }
       default:
-        jj_la1[6] = jj_gen;
+        jj_la1[7] = jj_gen;
         break label_3;
       }
       jj_consume_token(COMMA);
@@ -222,7 +283,7 @@ printMessage(type);
       break;
       }
     default:
-      jj_la1[7] = jj_gen;
+      jj_la1[8] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -246,7 +307,7 @@ printMessage(type);
   static public Token jj_nt;
   static private int jj_ntk;
   static private int jj_gen;
-  static final private int[] jj_la1 = new int[8];
+  static final private int[] jj_la1 = new int[9];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static {
@@ -254,10 +315,10 @@ printMessage(type);
 	   jj_la1_init_1();
 	}
 	private static void jj_la1_init_0() {
-	   jj_la1_0 = new int[] {0x220,0x200,0x100000,0x10006000,0x800,0x6000,0x100000,0x1c0,};
+	   jj_la1_0 = new int[] {0x1e20,0x1e00,0x1e00,0x1000000,0x60000,0x8000,0x60000,0x1000000,0x1c0,};
 	}
 	private static void jj_la1_init_1() {
-	   jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
+	   jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x1,0x0,0x0,0x0,0x0,};
 	}
 
   /** Constructor with InputStream. */
@@ -278,7 +339,7 @@ printMessage(type);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 8; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 9; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -292,7 +353,7 @@ printMessage(type);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 8; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 9; i++) jj_la1[i] = -1;
   }
 
   /** Constructor. */
@@ -309,7 +370,7 @@ printMessage(type);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 8; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 9; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -327,7 +388,7 @@ printMessage(type);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 8; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 9; i++) jj_la1[i] = -1;
   }
 
   /** Constructor with generated Token Manager. */
@@ -343,7 +404,7 @@ printMessage(type);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 8; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 9; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -352,7 +413,7 @@ printMessage(type);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 8; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 9; i++) jj_la1[i] = -1;
   }
 
   static private Token jj_consume_token(int kind) throws ParseException {
@@ -403,12 +464,12 @@ printMessage(type);
   /** Generate ParseException. */
   static public ParseException generateParseException() {
 	 jj_expentries.clear();
-	 boolean[] la1tokens = new boolean[33];
+	 boolean[] la1tokens = new boolean[37];
 	 if (jj_kind >= 0) {
 	   la1tokens[jj_kind] = true;
 	   jj_kind = -1;
 	 }
-	 for (int i = 0; i < 8; i++) {
+	 for (int i = 0; i < 9; i++) {
 	   if (jj_la1[i] == jj_gen) {
 		 for (int j = 0; j < 32; j++) {
 		   if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -420,7 +481,7 @@ printMessage(type);
 		 }
 	   }
 	 }
-	 for (int i = 0; i < 33; i++) {
+	 for (int i = 0; i < 37; i++) {
 	   if (la1tokens[i]) {
 		 jj_expentry = new int[1];
 		 jj_expentry[0] = i;

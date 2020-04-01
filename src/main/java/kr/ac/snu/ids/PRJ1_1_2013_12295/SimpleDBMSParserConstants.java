@@ -21,51 +21,59 @@ public interface SimpleDBMSParserConstants {
   /** RegularExpression Id. */
   int CREATE = 9;
   /** RegularExpression Id. */
-  int TABLE = 10;
+  int DROP = 10;
   /** RegularExpression Id. */
-  int NOT = 11;
+  int DESC = 11;
   /** RegularExpression Id. */
-  int NULL = 12;
+  int SHOW = 12;
   /** RegularExpression Id. */
-  int PRIMARY = 13;
+  int TABLE = 13;
   /** RegularExpression Id. */
-  int FOREIGN = 14;
+  int TABLES = 14;
   /** RegularExpression Id. */
-  int KEY = 15;
+  int NOT = 15;
   /** RegularExpression Id. */
-  int REFERENCES = 16;
+  int NULL = 16;
   /** RegularExpression Id. */
-  int SEMICOLON = 17;
+  int PRIMARY = 17;
   /** RegularExpression Id. */
-  int LEFT_PAREN = 18;
+  int FOREIGN = 18;
   /** RegularExpression Id. */
-  int RIGHT_PAREN = 19;
+  int KEY = 19;
   /** RegularExpression Id. */
-  int COMMA = 20;
+  int REFERENCES = 20;
   /** RegularExpression Id. */
-  int UNDERSCORE = 21;
+  int SEMICOLON = 21;
   /** RegularExpression Id. */
-  int INT_VALUE = 22;
+  int LEFT_PAREN = 22;
   /** RegularExpression Id. */
-  int DATE_VALUE = 23;
+  int RIGHT_PAREN = 23;
   /** RegularExpression Id. */
-  int NNNN = 24;
+  int COMMA = 24;
   /** RegularExpression Id. */
-  int NN = 25;
+  int UNDERSCORE = 25;
   /** RegularExpression Id. */
-  int SIGN = 26;
+  int INT_VALUE = 26;
   /** RegularExpression Id. */
-  int DIGIT = 27;
+  int DATE_VALUE = 27;
   /** RegularExpression Id. */
-  int LEGAL_IDENTIFIER = 28;
+  int NNNN = 28;
   /** RegularExpression Id. */
-  int ALPHABET = 29;
+  int NN = 29;
   /** RegularExpression Id. */
-  int QUOTE = 30;
+  int SIGN = 30;
   /** RegularExpression Id. */
-  int NON_QUOTE_SPECIAL_CHARACTER = 31;
+  int DIGIT = 31;
   /** RegularExpression Id. */
-  int NON_QUOTE_CHARACTER = 32;
+  int LEGAL_IDENTIFIER = 32;
+  /** RegularExpression Id. */
+  int ALPHABET = 33;
+  /** RegularExpression Id. */
+  int QUOTE = 34;
+  /** RegularExpression Id. */
+  int NON_QUOTE_SPECIAL_CHARACTER = 35;
+  /** RegularExpression Id. */
+  int NON_QUOTE_CHARACTER = 36;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -82,7 +90,11 @@ public interface SimpleDBMSParserConstants {
     "\"char\"",
     "\"date\"",
     "\"create\"",
+    "\"drop\"",
+    "\"desc\"",
+    "\"show\"",
     "\"table\"",
+    "\"tables\"",
     "\"not\"",
     "\"null\"",
     "\"primary\"",

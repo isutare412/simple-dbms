@@ -12,10 +12,13 @@ public class SimpleDBMSParser
 {
   public static final String PROMPT = "DB_2013_12295> ";
 
-  enum PrintType
+  enum QueryType
   {
     SYNTAX_ERROR,
     CREATE_TABLE,
+    DROP_TABLE,
+    DESC,
+    SHOW_TABLES,
   }
 
   public static void main(String args[]) throws ParseException
@@ -31,13 +34,13 @@ public class SimpleDBMSParser
       }
       catch (Exception e)
       {
-        printMessage(PrintType.SYNTAX_ERROR);
+        printMessage(QueryType.SYNTAX_ERROR);
         SimpleDBMSParser.ReInit(System.in);
       }
     }
   }
 
-  public static void printMessage(PrintType t)
+  public static void printMessage(QueryType t)
   {
     switch(t)
     {
@@ -46,6 +49,15 @@ public class SimpleDBMSParser
         break;
       case CREATE_TABLE:
         System.out.println("\'CREATE TABLE\' requested");
+        break;
+      case DROP_TABLE:
+        System.out.println("\'DROP TABLE\' requested");
+        break;
+      case DESC:
+        System.out.println("\'DESC\' requested");
+        break;
+      case SHOW_TABLES:
+        System.out.println("\'SHOW TABLES\' requested");
         break;
       default:
         System.out.println("unknown message accepted");
@@ -66,7 +78,11 @@ TOKEN : /* Keywords */
 | < CHAR : "char" >
 | < DATE : "date" >
 | < CREATE : "create" >
+| < DROP : "drop" >
+| < DESC : "desc" >
+| < SHOW : "show" >
 | < TABLE : "table" >
+| < TABLES : "tables" >
 | < NOT : "not" >
 | < NULL : "null" >
 | < PRIMARY : "primary" >
@@ -113,7 +129,7 @@ void command() :
 
 void queryList() :
 {
-  PrintType type;
+  QueryType type;
 }
 {
   (
@@ -125,25 +141,59 @@ void queryList() :
   )+
 }
 
-PrintType query() :
+QueryType query() :
 {
-  PrintType type;
+  QueryType type;
 }
 {
-  type = createTableQuery()
+  (
+    type = createTableQuery()
+  | type = dropTableQuery()
+  | type = descTableQuery()
+  | type = showTablesQuery()
+  )
   {
     return type;
   }
 }
 
-PrintType createTableQuery() :
+QueryType createTableQuery() :
 {}
 {
   < CREATE > < TABLE >
   tableName()
   tableElementList()
   {
-    return PrintType.CREATE_TABLE;
+    return QueryType.CREATE_TABLE;
+  }
+}
+
+QueryType dropTableQuery() :
+{}
+{
+  < DROP > < TABLE >
+  tableName()
+  {
+    return QueryType.DROP_TABLE;
+  }
+}
+
+QueryType descTableQuery() :
+{}
+{
+  < DESC >
+  tableName()
+  {
+    return QueryType.DESC;
+  }
+}
+
+QueryType showTablesQuery() :
+{}
+{
+  < SHOW > < TABLES >
+  {
+    return QueryType.SHOW_TABLES;
   }
 }
 
