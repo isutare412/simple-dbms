@@ -5,10 +5,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>kr.ac.snu.ids</groupId>
-  <artifactId>PRJ1-1_2013-12295</artifactId>
+  <artifactId>PRJ1-2_2013-12295</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 
-  <name>PRJ1-1_2013-12295</name>
+  <name>PRJ1-2_2013-12295</name>
   <!-- FIXME change it to the project's website -->
   <url>http://www.example.com</url>
 
@@ -24,6 +24,11 @@
       <artifactId>junit</artifactId>
       <version>4.11</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sleepycat</groupId>
+      <artifactId>je</artifactId>
+      <version>7.5.11</version>
     </dependency>
   </dependencies>
 
@@ -55,9 +60,10 @@
           <configuration>
             <archive>
               <manifest>
-                <packageName>kr.ac.snu.ids.PRJ1_1_2013_12295</packageName>
-                <mainClass>kr.ac.snu.ids.PRJ1_1_2013_12295.SimpleDBMSParser</mainClass>
+                <packageName>kr.ac.snu.ids.PRJ1_2_2013_12295</packageName>
+                <mainClass>kr.ac.snu.ids.PRJ1_2_2013_12295.SimpleDBMSParser</mainClass>
                 <addClasspath>true</addClasspath>
+                <classpathPrefix>lib/</classpathPrefix>
                 <addExtensions>true</addExtensions>
               </manifest>
             </archive>
@@ -81,7 +87,39 @@
           <artifactId>maven-project-info-reports-plugin</artifactId>
           <version>3.0.0</version>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>3.0.0</version>
+        </plugin>
       </plugins>
     </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>create-my-bundle</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <archive>
+                <manifest>
+                  <addClasspath>true</addClasspath>
+                  <mainClass>kr.ac.snu.ids.PRJ1_2_2013_12295.SimpleDBMSParser</mainClass>
+                </manifest>
+              </archive>
+              <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 </project>

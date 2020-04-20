@@ -1,0 +1,708 @@
+options
+{
+  //keywords can be both upper or lower case
+  IGNORE_CASE = true;
+}
+
+PARSER_BEGIN(SimpleDBMSParser)
+package kr.ac.snu.ids.PRJ1_2_2013_12295;
+import java.io.UnsupportedEncodingException;
+import java.io.File;
+
+import com.sleepycat.je.Database;
+import com.sleepycat.je.DatabaseException;
+import com.sleepycat.je.DatabaseConfig;
+import com.sleepycat.je.DatabaseEntry;
+import com.sleepycat.je.Cursor;
+import com.sleepycat.je.LockMode;
+import com.sleepycat.je.OperationStatus;
+import com.sleepycat.je.Environment;
+import com.sleepycat.je.EnvironmentConfig;
+
+public class SimpleDBMSParser
+{
+  //constants to distinguish query and print outputs.
+  public static final int PRINT_SYNTAX_ERROR = 0;
+  public static final int PRINT_CREATE_TABLE = 1;
+  public static final int PRINT_DROP_TABLE = 2;
+  public static final int PRINT_DESC = 3;
+  public static final int PRINT_INSERT = 4;
+  public static final int PRINT_DELETE = 5;
+  public static final int PRINT_SELECT = 6;
+  public static final int PRINT_SHOW_TABLES = 7;
+  
+  public static void main(String args[]) throws ParseException
+  {
+    
+    // Environment & Database define
+    Environment myDbEnvironment = null;
+    Database myDatabase = null;
+    
+    /* Opening DB */
+    // Open Database Environment or if not, create one.
+    EnvironmentConfig envConfig = new EnvironmentConfig();
+    envConfig.setAllowCreate(true);
+    myDbEnvironment  = new Environment(new File("db/"), envConfig);
+
+    // Open Database or if not, create one.
+    DatabaseConfig dbConfig = new DatabaseConfig();
+    dbConfig.setAllowCreate(true);
+    dbConfig.setSortedDuplicates(true);
+    myDatabase  = myDbEnvironment.openDatabase(null, "myDatabase", dbConfig);
+
+    Cursor cursor = null;
+    DatabaseEntry key;
+    DatabaseEntry value;
+    try {
+      cursor = myDatabase.openCursor(null, null);
+      key = new DatabaseEntry("key".getBytes("UTF-8"));
+      value = new DatabaseEntry("value".getBytes("UTF-8"));
+      cursor.put(key, value);
+    } catch (DatabaseException de) {
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    } finally {
+      cursor.close();
+    }
+
+    // Find key & value.
+    DatabaseEntry foundKey;
+    DatabaseEntry foundValue;
+    try {
+      cursor = myDatabase.openCursor(null, null);
+      foundKey = new DatabaseEntry("key".getBytes("UTF-8"));
+      foundValue = new DatabaseEntry("value".getBytes("UTF-8"));
+      cursor.getFirst(foundKey, foundValue, LockMode.DEFAULT);
+      do {
+        String keyString = new String(foundKey.getData(), "UTF-8");
+        String valueString = new String(foundValue.getData(), "UTF-8");
+        System.out.println(keyString);
+        System.out.println(valueString);
+      } while (cursor.getNext(foundKey, foundValue, LockMode.DEFAULT) == OperationStatus.SUCCESS);
+    } catch (DatabaseException de) {
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    } finally {
+      cursor.close();
+    }
+
+    // Close Database
+    if (myDatabase != null) myDatabase.close();
+    if (myDbEnvironment != null) myDbEnvironment.close();
+
+    // Project 1-1 Parser
+    SimpleDBMSParser parser = new SimpleDBMSParser(System.in);
+    // prompt when program starts
+    System.out.print("DB_2013-12295> ");
+    
+    while (true)
+    {
+      try
+      {
+        parser.command();
+      }
+      catch (Exception e)
+      {
+        printMessage(PRINT_SYNTAX_ERROR);
+        SimpleDBMSParser.ReInit(System.in);
+        // prompt after syntax error
+        System.out.print("DB_2013-12295> ");
+      }
+    }
+
+  }
+
+  public static void printMessage(int q)
+  {
+    //q is given by query() below
+    switch(q)
+    {
+      case PRINT_SYNTAX_ERROR:
+        System.out.println("Syntax error");
+        break;
+      case PRINT_CREATE_TABLE:
+        System.out.println("\'CREATE TABLE\' requested");
+        break;
+      case PRINT_DROP_TABLE:
+        System.out.println("\'DROP TABLE\' requested");
+        break;
+      case PRINT_DESC:
+        System.out.println("\'DESC\' requested");
+        break;
+      case PRINT_INSERT:
+        System.out.println("\'INSERT\' requested");
+        break;
+      case PRINT_DELETE:
+        System.out.println("\'DELETE\' requested");
+        break;
+      case PRINT_SELECT:
+        System.out.println("\'SELECT\' requested");
+        break;
+      case PRINT_SHOW_TABLES:
+        System.out.println("\'SHOW TABLES\' requested");
+        break;
+    }
+  }
+}
+
+PARSER_END(SimpleDBMSParser)
+
+SKIP : { < SPACE: " " > | <  TAB : "\t" > | < EOL : "\r\n" | "\n" | "\r" > }
+
+//key word on top of < LEGAL_IDENTIFIER > so keyword is detected first
+TOKEN : /* Keywords */
+{
+  < EXIT : "exit" >
+| < INT : "int" >
+| < CHAR : "char" >
+| < DATE : "date" >
+| < CREATE : "create" >
+| < TABLE : "table" >
+| < DROP : "drop" >
+| < DESC : "desc" >
+| < INSERT : "insert" >
+| < INTO : "into" >
+| < DELETE : "delete" >
+| < SELECT : "select" >
+| < SHOW : "show" >
+| < TABLES : "tables" >
+| < VALUES : "values" >
+| < WHERE : "where" >
+| < PRIMARY : "primary" >
+| < FOREIGN : "foreign" >
+| < KEY : "key" >
+| < REFERENCES : "references" >
+| < NULL : "null" >
+| < NOT : "not" >
+| < OR : "or" >
+| < AS : "as" >
+| < FROM : "from" >
+| < AND : "and" >
+| < IS : "is" >
+| < ASTERISK : "*" >
+}
+
+//building blocks for the functions below
+TOKEN :	//used in functions
+{
+  < END : < SEMICOLON >(< SPACE > | < TAB >)*< EOL >>
+| < SEMICOLON : ";" >
+| < LEFT_PAREN : "(" >
+| < RIGHT_PAREN : ")" >
+| < COMMA : "," >
+| < PERIOD : "." >
+| < COMP_OP : ">" | "<" | ">=" | "<=" | "!=" | "=" >
+| < INT_VALUE : (< SIGN >)? (< DIGIT >)+>
+| < LEGAL_IDENTIFIER : < ALPHABET > (< ALPHABET > | < UNDERSCORE >)* >
+| < DATE_VALUE : < NNNN >"-"< NN >"-"< NN > >
+| < CHAR_STRING : < QUOTE >(< NON_QUOTE_CHARACTER >)*< QUOTE > >
+}
+
+
+//used to make token block above
+TOKEN :	//used to make token
+{
+  < NNNN : < DIGIT >< DIGIT >< DIGIT >< DIGIT > >
+| < NN : < DIGIT >< DIGIT > >
+| < ALPHABET : [ "a"-"z", "A"-"Z" ] >
+| < SIGN : "+" | "-" >	
+| < DIGIT : [ "0"-"9" ] >
+| < UNDERSCORE : "_" >
+| < QUOTE : "'" >
+| < NON_QUOTE_SPECIAL_CHARACTERS: "!" | "@" | "#" | "$" | "%" | "^" | "&" | "-" | "{" | "}" | "[" | "]" |
+                  "~" | "`" | "+" | "*" | "_" | "=" | "\\" | "(" | ")" | "<" | ">" |
+                  "?" | "," | "." | "\n" | "\t" | "\r" | ":" | ";" | "|" | "/">
+| < NON_QUOTE_CHARACTER : < DIGIT > | < ALPHABET > | < NON_QUOTE_SPECIAL_CHARACTERS > | < SPACE > >
+| < UNEXPECTED : ~[] >
+}
+
+void command() :
+{}
+{
+  (
+    queryList()
+  )
+| (
+    < EXIT >
+    (
+      < SEMICOLON > | < END >
+   )
+    {
+      System.exit(0);
+    }
+  )
+}
+
+void queryList() :
+{
+  int q;
+}
+{
+  (
+    q = query()
+    (  
+      (
+        //when query ends at end of line
+        < END >
+        {
+          printMessage(q);
+          //prompt when new query starts
+          System.out.print("DB_2013-12295> ");
+        }
+    )
+    | (
+         //for query sequence with semicolon concatenated with another query
+      < SEMICOLON >
+        {
+          printMessage(q);
+       }
+    )
+  )
+  )+
+}
+
+int query() :
+{
+  int q;
+}
+{
+  //query returns q, which is used to print correct message by printMessage(q)
+  (
+    (
+      createTableQuery()
+      {
+        q = PRINT_CREATE_TABLE;
+      }
+    )
+  | (
+      dropTableQuery()
+      {
+        q = PRINT_DROP_TABLE;
+      }
+    )
+  | (
+      descQuery()
+      {
+        q = PRINT_DESC;
+      }
+    )
+  | (
+      insertQuery()
+      {
+        q = PRINT_INSERT;
+      }
+    )
+  | (
+      deleteQuery()
+      {
+        q = PRINT_DELETE;
+      }
+    )
+  | (
+      selectQuery()
+      {
+        q = PRINT_SELECT;
+      }
+    )
+  | (
+      showTablesQuery()
+      {
+        q = PRINT_SHOW_TABLES;
+      } 
+    )
+  )
+  { 
+    return q;
+  }
+}
+
+//below regex for queries are similar to the ones in grammar file. 
+
+/// 0. easy ones
+void dropTableQuery() :
+{}
+{
+  <  DROP >
+  < TABLE >
+  tableName()
+}
+void descQuery() :
+{}
+{
+  < DESC >
+  tableName()
+}
+
+void showTablesQuery() :
+{}
+{
+  < SHOW>
+  < TABLES >
+}
+
+/// 0. easy ones 
+
+/// 1. for createTableQuery()
+
+void createTableQuery() :
+{}
+{
+  < CREATE >
+  < TABLE >
+  tableName()
+  tableElementList()
+}
+
+void tableElementList() :
+{}
+{
+  < LEFT_PAREN >
+  tableElement()
+  (
+    < COMMA >
+    tableElement()
+  )*
+  < RIGHT_PAREN >
+}
+
+void tableElement() :
+{}
+{
+  columnDefinition()
+| tableConstraintDefinition()
+}
+
+void columnDefinition() :
+{}
+{
+  columnName()
+  dataType()
+  (
+    < NOT >
+    < NULL >
+  )?
+}
+
+void tableConstraintDefinition() :
+{}
+{
+  primaryKeyConstraint()
+| referentialConstraint()
+}
+
+void primaryKeyConstraint() :
+{}
+{
+  < PRIMARY >
+  < KEY >
+  columnNameList()
+}
+
+void referentialConstraint() :
+{}
+{
+  < FOREIGN >
+  < KEY >
+  columnNameList()
+  < REFERENCES >
+  tableName()
+  columnNameList()
+}
+
+void columnNameList() :
+{}
+{
+  < LEFT_PAREN >
+  columnName()
+  (
+    < COMMA >
+    columnName()
+  )*
+  < RIGHT_PAREN >
+}
+
+void dataType() :
+{}
+{
+  < INT >
+| (
+    < CHAR >
+    < LEFT_PAREN >
+    < INT_VALUE >
+    < RIGHT_PAREN >
+  )
+| < DATE >
+}
+
+void tableName() :
+{}
+{
+  < LEGAL_IDENTIFIER >
+}
+
+void columnName() :
+{}
+{
+  < LEGAL_IDENTIFIER >
+}
+
+/// 1. for createTableQuery
+
+
+/// 2. for selectQuery
+
+void selectQuery() :
+{}
+{
+  < SELECT >
+  selectList()
+  tableExpression()
+}
+
+void selectList() :
+{}
+{
+  < ASTERISK >
+| (
+    selectedColumn()
+    (
+      < COMMA >
+      selectedColumn()
+    )*
+  )
+}
+void selectedColumn() :
+{}
+{
+  (
+    //tableName & columnName are same token <LEGAL_IDENITFIER >, so need to lookahead 2
+    LOOKAHEAD(2)
+    tableName()
+    < PERIOD >
+  )?
+  columnName()
+  (
+    < AS >
+    columnName()
+  )?
+}
+
+void tableExpression():
+{}
+{
+  fromClause()
+  (
+    whereClause()
+  )?
+}
+
+void fromClause():
+{}
+{
+  < FROM >
+  tableReferenceList()
+}
+
+void tableReferenceList():
+{}
+{
+  referedTable()
+  (
+    < COMMA >
+    referedTable()
+  )*
+}
+
+void referedTable():
+{}
+{
+  tableName()
+  (
+    < AS >
+    tableName()
+  )?
+}
+
+void whereClause() :
+{}
+{
+  < WHERE >
+  booleanValueExpression()
+}
+
+void booleanValueExpression() :
+{}
+{
+  booleanTerm()
+  (
+    < OR >
+    booleanTerm()
+  )*
+}
+
+void booleanTerm():
+{}
+{
+  booleanFactor()
+  (
+    < AND >
+    booleanFactor()
+  )*
+}
+
+void booleanFactor():
+{}
+{
+  (
+    < NOT >
+  )?
+  booleanTest()
+}
+
+void booleanTest():
+{}
+{
+  predicate()
+| parenthesizedBooleanExpression()
+}
+
+void parenthesizedBooleanExpression():
+{}
+{
+  < LEFT_PAREN >
+  booleanValueExpression()
+  < RIGHT_PAREN >
+}
+
+void predicate():
+{}
+{
+  //comparisonPredicate & nullPredicate can both start with tableName()< PERIOD >columnName()
+  //so need to lookahead 4
+  LOOKAHEAD(4)
+  comparisonPredicate()
+| nullPredicate() 
+}
+
+void comparisonPredicate():
+{}
+{
+  compOperand()
+  < COMP_OP >
+  compOperand() 
+}
+
+void compOperand():
+{}
+{
+  comparableValue()
+| (
+    (
+      //tableName & columnName are same token <LEGAL_IDENITFIER >, so need to lookahead 2
+      LOOKAHEAD(2)
+      tableName()
+      < PERIOD >
+    )?
+    columnName()
+ )
+}
+
+void comparableValue():
+{}
+{
+  < INT_VALUE >
+| < CHAR_STRING >
+| < DATE_VALUE >
+}
+
+void nullPredicate():
+{}
+{
+  (
+    //tableName & columnName are same token <LEGAL_IDENITFIER >, so need to lookahead 2
+    LOOKAHEAD(2)
+    tableName()
+    < PERIOD >
+  )?
+  columnName()
+  nullOperation()
+}
+
+void nullOperation():
+{}
+{
+  < IS >
+  (
+    (
+      < NOT >
+    )?
+    < NULL >
+  )
+}
+
+/// 2. for selectQuery
+
+
+/// 3. for insert,delete
+
+void insertQuery() :
+{}
+{
+  < INSERT >
+  < INTO >
+  tableName()
+  insertColumnsAndSource()
+}
+
+void deleteQuery() :
+{}
+{
+  < DELETE >
+  < FROM > 
+  tableName()
+  (
+    whereClause()
+  )?
+}
+
+void insertColumnsAndSource() :
+{}
+{
+  (
+    columnNameList()
+  )?
+  valueList()
+}
+
+void valueList() :
+{}
+{
+  < VALUES >
+  < LEFT_PAREN >
+  value()
+  (
+    < COMMA >
+    value()
+  )*
+  < RIGHT_PAREN >
+}
+
+void value() :
+{}
+{
+  < NULL >
+|  comparableValue()
+}
+
+/// 3. for insert,delete
+
+
+
+
+
+
+
+
+
+
+
