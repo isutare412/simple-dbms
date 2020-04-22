@@ -19,6 +19,8 @@ import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 
+import database.*;
+
 public class SimpleDBMSParser
 {
   //constants to distinguish query and print outputs.
@@ -30,65 +32,12 @@ public class SimpleDBMSParser
   public static final int PRINT_DELETE = 5;
   public static final int PRINT_SELECT = 6;
   public static final int PRINT_SHOW_TABLES = 7;
+
+  public static DBManager manager;
   
   public static void main(String args[]) throws ParseException
   {
-    
-    // Environment & Database define
-    Environment myDbEnvironment = null;
-    Database myDatabase = null;
-    
-    /* Opening DB */
-    // Open Database Environment or if not, create one.
-    EnvironmentConfig envConfig = new EnvironmentConfig();
-    envConfig.setAllowCreate(true);
-    myDbEnvironment  = new Environment(new File("db/"), envConfig);
-
-    // Open Database or if not, create one.
-    DatabaseConfig dbConfig = new DatabaseConfig();
-    dbConfig.setAllowCreate(true);
-    dbConfig.setSortedDuplicates(true);
-    myDatabase  = myDbEnvironment.openDatabase(null, "myDatabase", dbConfig);
-
-    Cursor cursor = null;
-    DatabaseEntry key;
-    DatabaseEntry value;
-    try {
-      cursor = myDatabase.openCursor(null, null);
-      key = new DatabaseEntry("key".getBytes("UTF-8"));
-      value = new DatabaseEntry("value".getBytes("UTF-8"));
-      cursor.put(key, value);
-    } catch (DatabaseException de) {
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    } finally {
-      cursor.close();
-    }
-
-    // Find key & value.
-    DatabaseEntry foundKey;
-    DatabaseEntry foundValue;
-    try {
-      cursor = myDatabase.openCursor(null, null);
-      foundKey = new DatabaseEntry("key".getBytes("UTF-8"));
-      foundValue = new DatabaseEntry("value".getBytes("UTF-8"));
-      cursor.getFirst(foundKey, foundValue, LockMode.DEFAULT);
-      do {
-        String keyString = new String(foundKey.getData(), "UTF-8");
-        String valueString = new String(foundValue.getData(), "UTF-8");
-        System.out.println(keyString);
-        System.out.println(valueString);
-      } while (cursor.getNext(foundKey, foundValue, LockMode.DEFAULT) == OperationStatus.SUCCESS);
-    } catch (DatabaseException de) {
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    } finally {
-      cursor.close();
-    }
-
-    // Close Database
-    if (myDatabase != null) myDatabase.close();
-    if (myDbEnvironment != null) myDbEnvironment.close();
+    manager = new DBManager();
 
     // Project 1-1 Parser
     SimpleDBMSParser parser = new SimpleDBMSParser(System.in);
@@ -228,6 +177,7 @@ void command() :
       < SEMICOLON > | < END >
    )
     {
+      manager.close();
       System.exit(0);
     }
   )

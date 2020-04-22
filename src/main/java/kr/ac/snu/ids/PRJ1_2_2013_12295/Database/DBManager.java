@@ -1,4 +1,4 @@
-package kr.ac.snu.ids.PRJ1_2_2013_12295.Database;
+package database;
 
 import java.io.File;
 
@@ -12,11 +12,11 @@ import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 
-public class Manager {
-    public Environment environment;
-    public Database database;
+public class DBManager {
+    private Environment environment;
+    private Database database;
 
-    Manager() {
+    public DBManager() {
         // instantiate EnvironmentConfig
         EnvironmentConfig envConfig = new EnvironmentConfig();
         envConfig.setAllowCreate(true);
@@ -33,5 +33,14 @@ public class Manager {
         dbConfig.setAllowCreate(true);
         dbConfig.setSortedDuplicates(true);
         database  = environment.openDatabase(null, "DatabaseHolder", dbConfig);
+    }
+
+    public void close() {
+        if (database != null) {
+            database.close();
+        };
+        if (environment != null) {
+            environment.close();
+        }
     }
 }

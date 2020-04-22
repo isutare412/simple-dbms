@@ -14,6 +14,8 @@ import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 
+import database.*;
+
 public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   //constants to distinguish query and print outputs.
   public static final int PRINT_SYNTAX_ERROR = 0;
@@ -25,71 +27,16 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   public static final int PRINT_SELECT = 6;
   public static final int PRINT_SHOW_TABLES = 7;
 
-  private static final String PROMPT = "DB_2013-12295> ";
+  public static DBManager manager;
 
   public static void main(String args[]) throws ParseException
   {
-
-    // Environment & Database define
-    Environment myDbEnvironment = null;
-    Database myDatabase = null;
-
-    /* Opening DB */
-    // Open Database Environment or if not, create one.
-    EnvironmentConfig envConfig = new EnvironmentConfig();
-    envConfig.setAllowCreate(true);
-    myDbEnvironment  = new Environment(new File("db/"), envConfig);
-
-    // Open Database or if not, create one.
-    DatabaseConfig dbConfig = new DatabaseConfig();
-    dbConfig.setAllowCreate(true);
-    dbConfig.setSortedDuplicates(true);
-    myDatabase  = myDbEnvironment.openDatabase(null, "sampleDatabase", dbConfig);
-
-    Cursor cursor = null;
-    DatabaseEntry key;
-    DatabaseEntry value;
-    try {
-      cursor = myDatabase.openCursor(null, null);
-      key = new DatabaseEntry("key".getBytes("UTF-8"));
-      value = new DatabaseEntry("value".getBytes("UTF-8"));
-      cursor.put(key, value);
-    } catch (DatabaseException de) {
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    } finally {
-      cursor.close();
-    }
-
-    // Find key & value.
-    DatabaseEntry foundKey;
-    DatabaseEntry foundValue;
-    try {
-      cursor = myDatabase.openCursor(null, null);
-      foundKey = new DatabaseEntry("key".getBytes("UTF-8"));
-        foundValue = new DatabaseEntry("value".getBytes("UTF-8"));
-        cursor.getFirst(foundKey, foundValue, LockMode.DEFAULT);
-        do {
-          String keyString = new String(foundKey.getData(), "UTF-8");
-          String valueString = new String(foundValue.getData(), "UTF-8");
-          System.out.println(keyString);
-        System.out.println(valueString);
-        } while (cursor.getNext(foundKey, foundValue, LockMode.DEFAULT) == OperationStatus.SUCCESS);
-    } catch (DatabaseException de) {
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    } finally {
-      cursor.close();
-    }
-
-    // Close Database
-    if (myDatabase != null) myDatabase.close();
-    if (myDbEnvironment != null) myDbEnvironment.close();
+    manager = new DBManager();
 
     // Project 1-1 Parser
     SimpleDBMSParser parser = new SimpleDBMSParser(System.in);
     // prompt when program starts
-    System.out.print(PROMPT);
+    System.out.print("DB_2013-12295> ");
 
     while (true)
     {
@@ -102,7 +49,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
         printMessage(PRINT_SYNTAX_ERROR);
         SimpleDBMSParser.ReInit(System.in);
         // prompt after syntax error
-        System.out.print(PROMPT);
+        System.out.print("DB_2013-12295> ");
       }
     }
 
@@ -168,7 +115,8 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
         jj_consume_token(-1);
         throw new ParseException();
       }
-System.exit(0);
+manager.close();
+      System.exit(0);
       break;
       }
     default:
@@ -187,7 +135,7 @@ System.exit(0);
         jj_consume_token(END);
 printMessage(q);
           //prompt when new query starts
-          System.out.print(PROMPT);
+          System.out.print("DB_2013-12295> ");
         break;
         }
       case SEMICOLON:{
@@ -829,6 +777,29 @@ void insertQuery() throws ParseException {
     finally { jj_save(3, xla); }
   }
 
+  static private boolean jj_3R_10()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (!jj_3R_11()) return false;
+    jj_scanpos = xsp;
+    if (jj_3R_12()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_11()
+ {
+    if (jj_3R_13()) return true;
+    return false;
+  }
+
+  static private boolean jj_3_1()
+ {
+    if (jj_scan_token(40)) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
   static private boolean jj_3R_13()
  {
     Token xsp;
@@ -875,29 +846,6 @@ void insertQuery() throws ParseException {
     xsp = jj_scanpos;
     if (jj_3_3()) jj_scanpos = xsp;
     if (jj_scan_token(40)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_10()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (!jj_3R_11()) return false;
-    jj_scanpos = xsp;
-    if (jj_3R_12()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_11()
- {
-    if (jj_3R_13()) return true;
-    return false;
-  }
-
-  static private boolean jj_3_1()
- {
-    if (jj_scan_token(40)) return true;
-    if (jj_scan_token(PERIOD)) return true;
     return false;
   }
 
