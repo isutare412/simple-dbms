@@ -3,6 +3,7 @@
 package kr.ac.snu.ids.PRJ1_2_2013_12295;
 import java.io.UnsupportedEncodingException;
 import java.io.File;
+import java.util.HashMap;
 
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseException;
@@ -27,6 +28,8 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   public static final int PRINT_SELECT = 6;
   public static final int PRINT_SHOW_TABLES = 7;
 
+  private static String PROMPT = "DB_2013-12295> ";
+
   public static DBManager manager;
 
   public static void main(String args[]) throws ParseException
@@ -36,7 +39,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     // Project 1-1 Parser
     SimpleDBMSParser parser = new SimpleDBMSParser(System.in);
     // prompt when program starts
-    System.out.print("DB_2013-12295> ");
+    System.out.print(PROMPT);
 
     while (true)
     {
@@ -49,7 +52,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
         printMessage(PRINT_SYNTAX_ERROR);
         SimpleDBMSParser.ReInit(System.in);
         // prompt after syntax error
-        System.out.print("DB_2013-12295> ");
+        System.out.print(PROMPT);
       }
     }
 
@@ -135,7 +138,7 @@ manager.close();
         jj_consume_token(END);
 printMessage(q);
           //prompt when new query starts
-          System.out.print("DB_2013-12295> ");
+          System.out.print(PROMPT);
         break;
         }
       case SEMICOLON:{
@@ -235,16 +238,17 @@ q = PRINT_SHOW_TABLES;
 
 /// 1. for createTableQuery()
   static final public 
-void createTableQuery() throws ParseException {
+void createTableQuery() throws ParseException {String tableName;
+  HashMap<String, Column> columns = new HashMap<String, Column>();
     jj_consume_token(CREATE);
     jj_consume_token(TABLE);
-    tableName();
-    tableElementList();
+    tableName = tableName();
+    tableElementList(columns);
 }
 
-  static final public void tableElementList() throws ParseException {
+  static final public void tableElementList(HashMap<String, Column> columns) throws ParseException {
     jj_consume_token(LEFT_PAREN);
-    tableElement();
+    tableElement(columns);
     label_2:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -257,20 +261,20 @@ void createTableQuery() throws ParseException {
         break label_2;
       }
       jj_consume_token(COMMA);
-      tableElement();
+      tableElement(columns);
     }
     jj_consume_token(RIGHT_PAREN);
 }
 
-  static final public void tableElement() throws ParseException {
+  static final public void tableElement(HashMap<String, Column> columns) throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case LEGAL_IDENTIFIER:{
-      columnDefinition();
+      columnDefinition(columns);
       break;
       }
     case PRIMARY:
     case FOREIGN:{
-      tableConstraintDefinition();
+      tableConstraintDefinition(columns);
       break;
       }
     default:
@@ -280,9 +284,8 @@ void createTableQuery() throws ParseException {
     }
 }
 
-  static final public void columnDefinition() throws ParseException {
-    columnName();
-    dataType();
+  static final public void columnDefinition(HashMap<String, Column> columns) throws ParseException {String columnName;
+    columnName = columnName();
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case NOT:{
       jj_consume_token(NOT);
@@ -295,7 +298,7 @@ void createTableQuery() throws ParseException {
     }
 }
 
-  static final public void tableConstraintDefinition() throws ParseException {
+  static final public void tableConstraintDefinition(HashMap<String, Column> columns) throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case PRIMARY:{
       primaryKeyConstraint();
@@ -371,12 +374,16 @@ void createTableQuery() throws ParseException {
     }
 }
 
-  static final public void tableName() throws ParseException {
-    jj_consume_token(LEGAL_IDENTIFIER);
+  static final public String tableName() throws ParseException {Token name;
+    name = jj_consume_token(LEGAL_IDENTIFIER);
+{if ("" != null) return name.toString().toLowerCase();}
+    throw new Error("Missing return statement in function");
 }
 
-  static final public void columnName() throws ParseException {
-    jj_consume_token(LEGAL_IDENTIFIER);
+  static final public String columnName() throws ParseException {Token name;
+    name = jj_consume_token(LEGAL_IDENTIFIER);
+{if ("" != null) return name.toString().toLowerCase();}
+    throw new Error("Missing return statement in function");
 }
 
 /// 1. for createTableQuery
@@ -777,30 +784,58 @@ void insertQuery() throws ParseException {
     finally { jj_save(3, xla); }
   }
 
-  static private boolean jj_3R_10()
+  static private boolean jj_3R_15()
  {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (!jj_3R_11()) return false;
-    jj_scanpos = xsp;
-    if (jj_3R_12()) return true;
+    if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
     return false;
   }
 
-  static private boolean jj_3R_11()
+  static private boolean jj_3_4()
  {
-    if (jj_3R_13()) return true;
-    return false;
-  }
-
-  static private boolean jj_3_1()
- {
-    if (jj_scan_token(40)) return true;
+    if (jj_3R_9()) return true;
     if (jj_scan_token(PERIOD)) return true;
     return false;
   }
 
   static private boolean jj_3R_13()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_3()) jj_scanpos = xsp;
+    if (jj_3R_15()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_11()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (!jj_3R_12()) return false;
+    jj_scanpos = xsp;
+    if (jj_3R_13()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_12()
+ {
+    if (jj_3R_14()) return true;
+    return false;
+  }
+
+  static private boolean jj_3_1()
+ {
+    if (jj_3R_9()) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_9()
+ {
+    if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_14()
  {
     Token xsp;
     xsp = jj_scanpos;
@@ -812,40 +847,24 @@ void insertQuery() throws ParseException {
     return false;
   }
 
-  static private boolean jj_3R_9()
+  static private boolean jj_3R_10()
  {
-    if (jj_3R_10()) return true;
+    if (jj_3R_11()) return true;
     if (jj_scan_token(COMP_OP)) return true;
-    if (jj_3R_10()) return true;
+    if (jj_3R_11()) return true;
     return false;
   }
 
   static private boolean jj_3_3()
  {
-    if (jj_scan_token(40)) return true;
+    if (jj_3R_9()) return true;
     if (jj_scan_token(PERIOD)) return true;
     return false;
   }
 
   static private boolean jj_3_2()
  {
-    if (jj_3R_9()) return true;
-    return false;
-  }
-
-  static private boolean jj_3_4()
- {
-    if (jj_scan_token(40)) return true;
-    if (jj_scan_token(PERIOD)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_12()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_3()) jj_scanpos = xsp;
-    if (jj_scan_token(40)) return true;
+    if (jj_3R_10()) return true;
     return false;
   }
 

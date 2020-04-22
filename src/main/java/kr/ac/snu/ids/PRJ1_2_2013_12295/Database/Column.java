@@ -6,7 +6,7 @@ public class Column {
     private DataType type;
     private int charLength;
     private boolean primaryKey = false;
-    private Reference reference;
+    private Reference reference = null;
     private boolean nullable = true;
 }
 

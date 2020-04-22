@@ -8,6 +8,7 @@ PARSER_BEGIN(SimpleDBMSParser)
 package kr.ac.snu.ids.PRJ1_2_2013_12295;
 import java.io.UnsupportedEncodingException;
 import java.io.File;
+import java.util.HashMap;
 
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseException;
@@ -33,6 +34,8 @@ public class SimpleDBMSParser
   public static final int PRINT_SELECT = 6;
   public static final int PRINT_SHOW_TABLES = 7;
 
+  private static String PROMPT = "DB_2013-12295> ";
+
   public static DBManager manager;
   
   public static void main(String args[]) throws ParseException
@@ -42,7 +45,7 @@ public class SimpleDBMSParser
     // Project 1-1 Parser
     SimpleDBMSParser parser = new SimpleDBMSParser(System.in);
     // prompt when program starts
-    System.out.print("DB_2013-12295> ");
+    System.out.print(PROMPT);
     
     while (true)
     {
@@ -55,7 +58,7 @@ public class SimpleDBMSParser
         printMessage(PRINT_SYNTAX_ERROR);
         SimpleDBMSParser.ReInit(System.in);
         // prompt after syntax error
-        System.out.print("DB_2013-12295> ");
+        System.out.print(PROMPT);
       }
     }
 
@@ -197,7 +200,7 @@ void queryList() :
         {
           printMessage(q);
           //prompt when new query starts
-          System.out.print("DB_2013-12295> ");
+          System.out.print(PROMPT);
         }
     )
     | (
@@ -295,45 +298,49 @@ void showTablesQuery() :
 /// 1. for createTableQuery()
 
 void createTableQuery() :
-{}
+{
+  String tableName;
+  HashMap<String, Column> columns = new HashMap<String, Column>();
+}
 {
   < CREATE >
   < TABLE >
-  tableName()
-  tableElementList()
+  tableName = tableName()
+  tableElementList(columns)
 }
 
-void tableElementList() :
+void tableElementList(HashMap<String, Column> columns) :
 {}
 {
   < LEFT_PAREN >
-  tableElement()
+  tableElement(columns)
   (
     < COMMA >
-    tableElement()
+    tableElement(columns)
   )*
   < RIGHT_PAREN >
 }
 
-void tableElement() :
+void tableElement(HashMap<String, Column> columns) :
 {}
 {
-  columnDefinition()
-| tableConstraintDefinition()
+  columnDefinition(columns)
+| tableConstraintDefinition(columns)
 }
 
-void columnDefinition() :
-{}
+void columnDefinition(HashMap<String, Column> columns) :
 {
-  columnName()
-  dataType()
+  String columnName;
+}
+{
+  columnName = columnName()
   (
     < NOT >
     < NULL >
   )?
 }
 
-void tableConstraintDefinition() :
+void tableConstraintDefinition(HashMap<String, Column> columns) :
 {}
 {
   primaryKeyConstraint()
@@ -384,16 +391,26 @@ void dataType() :
 | < DATE >
 }
 
-void tableName() :
-{}
+String tableName() :
 {
-  < LEGAL_IDENTIFIER >
+  Token name;
+}
+{
+  name = < LEGAL_IDENTIFIER >
+  {
+    return name.toString().toLowerCase();
+  }
 }
 
-void columnName() :
-{}
+String columnName() :
 {
-  < LEGAL_IDENTIFIER >
+  Token name;
+}
+{
+  name = < LEGAL_IDENTIFIER >
+  {
+    return name.toString().toLowerCase();
+  }
 }
 
 /// 1. for createTableQuery
