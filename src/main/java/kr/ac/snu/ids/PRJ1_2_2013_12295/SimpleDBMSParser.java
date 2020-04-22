@@ -25,6 +25,8 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   public static final int PRINT_SELECT = 6;
   public static final int PRINT_SHOW_TABLES = 7;
 
+  private static final String PROMPT = "DB_2013-12295> ";
+
   public static void main(String args[]) throws ParseException
   {
 
@@ -87,7 +89,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     // Project 1-1 Parser
     SimpleDBMSParser parser = new SimpleDBMSParser(System.in);
     // prompt when program starts
-    System.out.print("DB_2013-12295> ");
+    System.out.print(PROMPT);
 
     while (true)
     {
@@ -100,7 +102,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
         printMessage(PRINT_SYNTAX_ERROR);
         SimpleDBMSParser.ReInit(System.in);
         // prompt after syntax error
-        System.out.print("DB_2013-12295> ");
+        System.out.print(PROMPT);
       }
     }
 
@@ -185,7 +187,7 @@ System.exit(0);
         jj_consume_token(END);
 printMessage(q);
           //prompt when new query starts
-          System.out.print("DB_2013-12295> ");
+          System.out.print(PROMPT);
         break;
         }
       case SEMICOLON:{
