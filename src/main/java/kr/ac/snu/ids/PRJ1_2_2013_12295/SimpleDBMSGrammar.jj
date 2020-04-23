@@ -8,7 +8,6 @@ PARSER_BEGIN(SimpleDBMSParser)
 package kr.ac.snu.ids.PRJ1_2_2013_12295;
 import java.io.UnsupportedEncodingException;
 import java.io.File;
-import java.util.HashMap;
 
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseException;
@@ -20,7 +19,7 @@ import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 
-import database.*;
+import kr.ac.snu.ids.PRJ1_2_2013_12295.database.*;
 
 public class SimpleDBMSParser
 {
@@ -42,22 +41,31 @@ public class SimpleDBMSParser
   {
     manager = new DBManager();
 
-    // Project 1-1 Parser
     SimpleDBMSParser parser = new SimpleDBMSParser(System.in);
-    // prompt when program starts
     System.out.print(PROMPT);
-    
+
     while (true)
     {
       try
       {
         parser.command();
       }
-      catch (Exception e)
+      catch (DBException dbe)
+      {
+        System.out.println(dbe.getMessage());
+        SimpleDBMSParser.ReInit(System.in);
+        System.out.print(PROMPT);
+      }
+      catch (ParseException e)
       {
         printMessage(PRINT_SYNTAX_ERROR);
         SimpleDBMSParser.ReInit(System.in);
-        // prompt after syntax error
+        System.out.print(PROMPT);
+      }
+      catch (Exception e)
+      {
+        System.out.println(e.getMessage());
+        SimpleDBMSParser.ReInit(System.in);
         System.out.print(PROMPT);
       }
     }
@@ -168,7 +176,7 @@ TOKEN :	//used to make token
 | < UNEXPECTED : ~[] >
 }
 
-void command() :
+void command() throws DBException :
 {}
 {
   (
@@ -178,7 +186,7 @@ void command() :
     < EXIT >
     (
       < SEMICOLON > | < END >
-   )
+    )
     {
       manager.close();
       System.exit(0);
@@ -186,14 +194,14 @@ void command() :
   )
 }
 
-void queryList() :
+void queryList() throws DBException :
 {
   int q;
 }
 {
   (
     q = query()
-    (  
+    (
       (
         //when query ends at end of line
         < END >
@@ -202,19 +210,19 @@ void queryList() :
           //prompt when new query starts
           System.out.print(PROMPT);
         }
-    )
+      )
     | (
-         //for query sequence with semicolon concatenated with another query
-      < SEMICOLON >
+        //for query sequence with semicolon concatenated with another query
+        < SEMICOLON >
         {
           printMessage(q);
-       }
+        }
+      )
     )
-  )
   )+
 }
 
-int query() :
+int query() throws DBException :
 {
   int q;
 }
@@ -275,7 +283,7 @@ int query() :
 void dropTableQuery() :
 {}
 {
-  <  DROP >
+  < DROP >
   < TABLE >
   tableName()
 }
@@ -289,7 +297,7 @@ void descQuery() :
 void showTablesQuery() :
 {}
 {
-  < SHOW>
+  < SHOW >
   < TABLES >
 }
 
@@ -297,50 +305,64 @@ void showTablesQuery() :
 
 /// 1. for createTableQuery()
 
-void createTableQuery() :
+void createTableQuery() throws DBException :
 {
+  Table table;
   String tableName;
-  HashMap<String, Column> columns = new HashMap<String, Column>();
 }
 {
   < CREATE >
   < TABLE >
   tableName = tableName()
-  tableElementList(columns)
+  {
+    table = new Table(tableName);
+  }
+  tableElementList(table)
 }
 
-void tableElementList(HashMap<String, Column> columns) :
+void tableElementList(Table table) throws DBException :
 {}
 {
   < LEFT_PAREN >
-  tableElement(columns)
+  tableElement(table)
   (
     < COMMA >
-    tableElement(columns)
+    tableElement(table)
   )*
   < RIGHT_PAREN >
 }
 
-void tableElement(HashMap<String, Column> columns) :
+void tableElement(Table table) throws DBException :
 {}
 {
-  columnDefinition(columns)
-| tableConstraintDefinition(columns)
+  columnDefinition(table)
+| tableConstraintDefinition(table)
 }
 
-void columnDefinition(HashMap<String, Column> columns) :
+void columnDefinition(Table table) throws DBException :
 {
-  String columnName;
+  Column column;
+  String name;
 }
 {
-  columnName = columnName()
+  name = columnName()
+  {
+    column = new Column(name);
+  }
+  dataType(column)
   (
     < NOT >
     < NULL >
+    {
+      column.setNullable(false);
+    }
   )?
+  {
+    table.addColumn(column);
+  }
 }
 
-void tableConstraintDefinition(HashMap<String, Column> columns) :
+void tableConstraintDefinition(Table table) :
 {}
 {
   primaryKeyConstraint()
@@ -378,17 +400,29 @@ void columnNameList() :
   < RIGHT_PAREN >
 }
 
-void dataType() :
-{}
+void dataType(Column column) :
+{
+  Token charLength;
+}
 {
   < INT >
+  {
+    column.setDataType(DataType.INT);
+  }
 | (
     < CHAR >
     < LEFT_PAREN >
-    < INT_VALUE >
+    charLength = < INT_VALUE >
     < RIGHT_PAREN >
+    {
+      column.setDataType(DataType.CHAR);
+      column.setCharLength(Integer.parseInt(charLength.toString()));
+    }
   )
 | < DATE >
+  {
+    column.setDataType(DataType.DATE);
+  }
 }
 
 String tableName() :

@@ -3,7 +3,6 @@
 package kr.ac.snu.ids.PRJ1_2_2013_12295;
 import java.io.UnsupportedEncodingException;
 import java.io.File;
-import java.util.HashMap;
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.DatabaseConfig;
@@ -13,7 +12,7 @@ import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
-import database.*;
+import kr.ac.snu.ids.PRJ1_2_2013_12295.database.*;
 
 /** Token Manager. */
 @SuppressWarnings ("unused")

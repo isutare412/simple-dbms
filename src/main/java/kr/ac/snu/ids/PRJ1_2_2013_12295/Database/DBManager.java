@@ -1,4 +1,4 @@
-package database;
+package kr.ac.snu.ids.PRJ1_2_2013_12295.database;
 
 import java.io.File;
 
