@@ -4,12 +4,18 @@ import java.util.HashMap;
 
 public class Table {
     private String name;
-    private HashMap<String, Column> columns;
+    HashMap<String, Column> columns;
 
     public Table(String name) {
         this.name = name;
         this.columns = new HashMap<String, Column>();
     }
+
+    public String getName() { return name; }
+
+    public String getKey() { return Table.getKey(name); }
+    static public String getKey(String name) { return "t-" + name; }
+    public String getValue() { return "exists"; }
 
     public void addColumn(Column column) throws DBException {
         // check column duplicates

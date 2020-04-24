@@ -253,6 +253,7 @@ void createTableQuery() throws ParseException, DBException {Table table;
     tableName = tableName();
 table = new Table(tableName);
     tableElementList(table);
+manager.createTable(table);
 }
 
   static final public void tableElementList(Table table) throws ParseException, DBException {
@@ -802,12 +803,6 @@ void insertQuery() throws ParseException {
     finally { jj_save(3, xla); }
   }
 
-  static private boolean jj_3R_9()
- {
-    if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
-    return false;
-  }
-
   static private boolean jj_3R_14()
  {
     Token xsp;
@@ -883,6 +878,12 @@ void insertQuery() throws ParseException {
  {
     if (jj_3R_9()) return true;
     if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_9()
+ {
+    if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
     return false;
   }
 

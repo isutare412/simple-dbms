@@ -318,6 +318,9 @@ void createTableQuery() throws DBException :
     table = new Table(tableName);
   }
   tableElementList(table)
+  {
+    manager.createTable(table);
+  }
 }
 
 void tableElementList(Table table) throws DBException :
