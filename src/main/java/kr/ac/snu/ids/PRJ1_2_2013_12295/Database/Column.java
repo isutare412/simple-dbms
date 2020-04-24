@@ -23,7 +23,7 @@ public class Column {
     public void setCharLength(int length) { this.charLength = length; }
     public void setNullable(boolean able) { this.nullable = able; }
     public void setPrimaryKey(boolean able) { this.primaryKey = able; }
-    public void putReference(String tableName, String columnName) { reference = new Reference(tableName, columnName); }
+    public void setReference(String tableName, String columnName) { reference = new Reference(tableName, columnName); }
 
     public boolean isSameType(Column rhs) {
         if (type != rhs.type) {

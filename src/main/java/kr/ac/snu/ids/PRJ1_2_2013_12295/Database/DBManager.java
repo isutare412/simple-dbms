@@ -16,6 +16,8 @@ import com.sleepycat.je.Transaction;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 
+import kr.ac.snu.ids.PRJ1_2_2013_12295.query.*;
+
 public class DBManager {
     private Environment environment;
     private Database database;
@@ -44,11 +46,55 @@ public class DBManager {
     // table methods
     /////////////////////////////////////////////////////////////////////////
 
-    public void createTable(Table table) throws DBException {
-        if (tableExists(table.getName())) {
+    public void createTable(CreateQuery query) throws DBException {
+        String tableName = query.getTableName();
+
+        // check if the table exists
+        if (tableExists(tableName)) {
             throw new TableExistenceError();
         }
 
+        // create table model
+        Table table = new Table(tableName);
+
+        // add column type data
+        for (Column column : query.getColumns()) {
+            table.addColumn(column);
+        }
+
+        // register primary keys
+        for (String pkColumnName : query.getPrimaryKeyColumns()) {
+            table.registerPrimaryKey(pkColumnName);
+        }
+
+        // register foreign keys
+        for (CreateQuery.ReferenceConstraint referenceData : query.getReferences()) {
+            String targetTableName = referenceData.getTargetTableName();
+            ArrayList<String> refers = referenceData.getReferencings();
+            ArrayList<String> referreds = referenceData.getReferenceds();
+
+            // the table to reference does not exists
+            if (!tableExists(targetTableName)) {
+                throw new ReferenceTableExistenceError();
+            }
+
+            // size of referencing columns and referenced columns is different
+            if (refers.size() != referreds.size()) {
+                throw new ReferenceTypeError();
+            }
+
+            // read target table from database
+            Table referredTable = getTable(targetTableName);
+
+            // check if target table exists
+            if (referredTable == null) {
+                throw new ReferenceTableExistenceError();
+            }
+
+            table.registerForeignKey(referredTable, refers, referreds);
+        }
+
+        // save created table model to database
         Transaction txn = null;
         Cursor cursor = null;
 
@@ -95,87 +141,8 @@ public class DBManager {
         }
     }
 
-    public void tableAddPrimaryKeys(Table table, ArrayList<String> columnNames) throws DBException {
-        for (String columnName : columnNames) {
-            Column column = table.columns.get(columnName);
-
-            // check if the column exists
-            if (column == null) {
-                throw new NonExistingColumnDefError(columnName);
-            }
-
-            // check if primary key definition is duplicated
-            if (column.getPrimaryKey() == true) {
-                throw new DuplicatePrimaryKeyDefError();
-            }
-
-            // set primary key
-            column.setPrimaryKey(true);
-            column.setNullable(false);
-        }
-    }
-
-    // add reference constraints to table.
-    public void tableAddForeignKeys(
-        Table table,
-        ArrayList<String> refers,
-        ArrayList<String> referreds,
-        String targetTableName
-    ) throws DBException {
-        // the table to reference does not exists
-        if (!tableExists(targetTableName)) {
-            throw new ReferenceTableExistenceError();
-        }
-
-        // size of referencing columns and referenced columns is different
-        if (refers.size() != referreds.size()) {
-            throw new ReferenceTypeError();
-        }
-
-        // read target table from database
-        Table referredTable = getTable(targetTableName);
-        if (referredTable == null) {
-            throw new ReferenceTableExistenceError();
-        }
-
-        for (int i = 0; i < refers.size(); i++) {
-            String sourceColumnName = refers.get(i);
-            Column sourceColumn = table.columns.get(sourceColumnName);
-            String targetColumnName = referreds.get(i);
-            Column targetColumn = referredTable.columns.get(targetColumnName);
-
-            // check the referencing column exists
-            if (sourceColumn == null) {
-                throw new NonExistingColumnDefError(sourceColumnName);
-            }
-
-            // check if the referenced column exists
-            if (targetColumn == null) {
-                throw new ReferenceColumnExistenceError();
-            }
-
-            // check both columns have same type
-            if (!targetColumn.isSameType(sourceColumn)) {
-                throw new ReferenceTypeError();
-            }
-
-            // check referenced column is primary key
-            if (targetColumn.getPrimaryKey() == false) {
-                throw new ReferenceNonPrimaryKeyError();
-            }
-
-            // check if all primary keys of referenced table are referenced
-            if (refers.size() != referredTable.getPrimaryKeyCount()) {
-                throw new ReferenceNonPrimaryKeyError();
-            }
-
-            // add reference data to the referencing column
-            sourceColumn.putReference(targetTableName, targetColumnName);
-        }
-    }
-
     // checks whether table with tableName exists.
-    public boolean tableExists(String tableName) {
+    private boolean tableExists(String tableName) {
         Cursor cursor = null;
         try {
             cursor = database.openCursor(null, null);

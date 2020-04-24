@@ -20,7 +20,7 @@ class DuplicateColumnDefError extends DBException {
 
 @SuppressWarnings("serial")
 class DuplicatePrimaryKeyDefError extends DBException {
-    public DuplicatePrimaryKeyDefError () {
+    public DuplicatePrimaryKeyDefError() {
         super("Create table has failed: primary key definition is duplicated");
     }
 }
@@ -48,14 +48,14 @@ class ReferenceTableExistenceError extends DBException {
 
 @SuppressWarnings("serial")
 class ReferenceColumnExistenceError extends DBException {
-    public ReferenceColumnExistenceError () {
+    public ReferenceColumnExistenceError() {
         super("Create table has failed: foreign key references non existing column");
     }
 }
 
 @SuppressWarnings("serial")
 class ReferenceNonPrimaryKeyError extends DBException {
-    public ReferenceNonPrimaryKeyError  () {
+    public ReferenceNonPrimaryKeyError() {
         super("Create table has failed: foreign key references non primary key column");
     }
 }

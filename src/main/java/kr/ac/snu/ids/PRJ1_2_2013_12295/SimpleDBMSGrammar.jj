@@ -21,6 +21,7 @@ import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 
 import kr.ac.snu.ids.PRJ1_2_2013_12295.database.*;
+import kr.ac.snu.ids.PRJ1_2_2013_12295.query.*;
 
 public class SimpleDBMSParser
 {
@@ -308,42 +309,42 @@ void showTablesQuery() :
 
 void createTableQuery() throws DBException :
 {
-  Table table;
   String tableName;
+  CreateQuery createQuery;
 }
 {
   < CREATE >
   < TABLE >
   tableName = tableName()
   {
-    table = new Table(tableName);
+    createQuery = new CreateQuery(tableName);
   }
-  tableElementList(table)
+  tableElementList(createQuery)
   {
-    manager.createTable(table);
+    manager.createTable(createQuery);
   }
 }
 
-void tableElementList(Table table) throws DBException :
+void tableElementList(CreateQuery createQuery) :
 {}
 {
   < LEFT_PAREN >
-  tableElement(table)
+  tableElement(createQuery)
   (
     < COMMA >
-    tableElement(table)
+    tableElement(createQuery)
   )*
   < RIGHT_PAREN >
 }
 
-void tableElement(Table table) throws DBException :
+void tableElement(CreateQuery createQuery) :
 {}
 {
-  columnDefinition(table)
-| tableConstraintDefinition(table)
+  columnDefinition(createQuery)
+| tableConstraintDefinition(createQuery)
 }
 
-void columnDefinition(Table table) throws DBException :
+void columnDefinition(CreateQuery createQuery) :
 {
   Column column;
   String name;
@@ -362,18 +363,18 @@ void columnDefinition(Table table) throws DBException :
     }
   )?
   {
-    table.addColumn(column);
+    createQuery.addColumn(column);
   }
 }
 
-void tableConstraintDefinition(Table table) throws DBException :
+void tableConstraintDefinition(CreateQuery createQuery) :
 {}
 {
-  primaryKeyConstraint(table)
-| referentialConstraint(table)
+  primaryKeyConstraint(createQuery)
+| referentialConstraint(createQuery)
 }
 
-void primaryKeyConstraint(Table table) throws DBException :
+void primaryKeyConstraint(CreateQuery createQuery) :
 {
   ArrayList<String> primaryKeyNames;
 }
@@ -382,25 +383,32 @@ void primaryKeyConstraint(Table table) throws DBException :
   < KEY >
   primaryKeyNames = columnNameList()
   {
-    manager.tableAddPrimaryKeys(table, primaryKeyNames);
+    for (String columnName : primaryKeyNames) {
+      createQuery.addPrimaryKeyColumn(columnName);
+    }
   }
 }
 
-void referentialConstraint(Table table) throws DBException :
+void referentialConstraint(CreateQuery createQuery) :
 {
-  ArrayList<String> referencers;
+  ArrayList<String> referencings;
   ArrayList<String> referenceds;
   String targetTableName;
+  CreateQuery.ReferenceConstraint referenceData;
 }
 {
   < FOREIGN >
   < KEY >
-  referencers = columnNameList()
+  referencings = columnNameList()
   < REFERENCES >
   targetTableName = tableName()
   referenceds = columnNameList()
   {
-    manager.tableAddForeignKeys(table, referencers, referenceds, targetTableName);
+    referenceData = createQuery.new ReferenceConstraint();
+    referenceData.setReferencings(referencings);
+    referenceData.setReferenceds(referenceds);
+    referenceData.setTargetTableName(targetTableName);
+    createQuery.addReference(referenceData);
   }
 }
 

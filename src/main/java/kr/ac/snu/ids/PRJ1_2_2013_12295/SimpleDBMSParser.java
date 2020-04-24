@@ -16,6 +16,7 @@ import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 
 import kr.ac.snu.ids.PRJ1_2_2013_12295.database.*;
+import kr.ac.snu.ids.PRJ1_2_2013_12295.query.*;
 
 public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   //constants to distinguish query and print outputs.
@@ -247,19 +248,19 @@ q = PRINT_SHOW_TABLES;
 
 /// 1. for createTableQuery()
   static final public 
-void createTableQuery() throws ParseException, DBException {Table table;
-  String tableName;
+void createTableQuery() throws ParseException, DBException {String tableName;
+  CreateQuery createQuery;
     jj_consume_token(CREATE);
     jj_consume_token(TABLE);
     tableName = tableName();
-table = new Table(tableName);
-    tableElementList(table);
-manager.createTable(table);
+createQuery = new CreateQuery(tableName);
+    tableElementList(createQuery);
+manager.createTable(createQuery);
 }
 
-  static final public void tableElementList(Table table) throws ParseException, DBException {
+  static final public void tableElementList(CreateQuery createQuery) throws ParseException {
     jj_consume_token(LEFT_PAREN);
-    tableElement(table);
+    tableElement(createQuery);
     label_2:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -272,20 +273,20 @@ manager.createTable(table);
         break label_2;
       }
       jj_consume_token(COMMA);
-      tableElement(table);
+      tableElement(createQuery);
     }
     jj_consume_token(RIGHT_PAREN);
 }
 
-  static final public void tableElement(Table table) throws ParseException, DBException {
+  static final public void tableElement(CreateQuery createQuery) throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case LEGAL_IDENTIFIER:{
-      columnDefinition(table);
+      columnDefinition(createQuery);
       break;
       }
     case PRIMARY:
     case FOREIGN:{
-      tableConstraintDefinition(table);
+      tableConstraintDefinition(createQuery);
       break;
       }
     default:
@@ -295,7 +296,7 @@ manager.createTable(table);
     }
 }
 
-  static final public void columnDefinition(Table table) throws ParseException, DBException {Column column;
+  static final public void columnDefinition(CreateQuery createQuery) throws ParseException {Column column;
   String name;
     name = columnName();
 column = new Column(name);
@@ -311,17 +312,17 @@ column.setNullable(false);
       jj_la1[7] = jj_gen;
       ;
     }
-table.addColumn(column);
+createQuery.addColumn(column);
 }
 
-  static final public void tableConstraintDefinition(Table table) throws ParseException, DBException {
+  static final public void tableConstraintDefinition(CreateQuery createQuery) throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case PRIMARY:{
-      primaryKeyConstraint(table);
+      primaryKeyConstraint(createQuery);
       break;
       }
     case FOREIGN:{
-      referentialConstraint(table);
+      referentialConstraint(createQuery);
       break;
       }
     default:
@@ -331,23 +332,30 @@ table.addColumn(column);
     }
 }
 
-  static final public void primaryKeyConstraint(Table table) throws ParseException, DBException {ArrayList<String> primaryKeyNames;
+  static final public void primaryKeyConstraint(CreateQuery createQuery) throws ParseException {ArrayList<String> primaryKeyNames;
     jj_consume_token(PRIMARY);
     jj_consume_token(KEY);
     primaryKeyNames = columnNameList();
-manager.tableAddPrimaryKeys(table, primaryKeyNames);
+for (String columnName : primaryKeyNames) {
+      createQuery.addPrimaryKeyColumn(columnName);
+    }
 }
 
-  static final public void referentialConstraint(Table table) throws ParseException, DBException {ArrayList<String> referencers;
+  static final public void referentialConstraint(CreateQuery createQuery) throws ParseException {ArrayList<String> referencings;
   ArrayList<String> referenceds;
   String targetTableName;
+  CreateQuery.ReferenceConstraint referenceData;
     jj_consume_token(FOREIGN);
     jj_consume_token(KEY);
-    referencers = columnNameList();
+    referencings = columnNameList();
     jj_consume_token(REFERENCES);
     targetTableName = tableName();
     referenceds = columnNameList();
-manager.tableAddForeignKeys(table, referencers, referenceds, targetTableName);
+referenceData = createQuery.new ReferenceConstraint();
+    referenceData.setReferencings(referencings);
+    referenceData.setReferenceds(referenceds);
+    referenceData.setTargetTableName(targetTableName);
+    createQuery.addReference(referenceData);
 }
 
   static final public ArrayList<String> columnNameList() throws ParseException {ArrayList<String> names;
@@ -814,25 +822,6 @@ void insertQuery() throws ParseException {
     finally { jj_save(3, xla); }
   }
 
-  static private boolean jj_3_3()
- {
-    if (jj_3R_9()) return true;
-    if (jj_scan_token(PERIOD)) return true;
-    return false;
-  }
-
-  static private boolean jj_3_2()
- {
-    if (jj_3R_10()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_15()
- {
-    if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
-    return false;
-  }
-
   static private boolean jj_3_4()
  {
     if (jj_3R_9()) return true;
@@ -895,6 +884,25 @@ void insertQuery() throws ParseException {
     if (jj_3R_11()) return true;
     if (jj_scan_token(COMP_OP)) return true;
     if (jj_3R_11()) return true;
+    return false;
+  }
+
+  static private boolean jj_3_3()
+ {
+    if (jj_3R_9()) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_2()
+ {
+    if (jj_3R_10()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_15()
+ {
+    if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
     return false;
   }
 
