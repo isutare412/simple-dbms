@@ -66,3 +66,10 @@ class NonExistingColumnDefError extends DBException {
         super("Create table has failed: \'" + columnName + "\' does not exists in column definition");
     }
 }
+
+@SuppressWarnings("serial")
+class NonExistingPrimaryKeyError extends DBException {
+    public NonExistingPrimaryKeyError() {
+        super("Create table has failed: primary key does not exists in table definition");
+    }
+}

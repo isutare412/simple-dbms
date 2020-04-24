@@ -67,6 +67,11 @@ public class DBManager {
             table.registerPrimaryKey(pkColumnName);
         }
 
+        // check if primary key exists
+        if (table.getPrimaryKeyCount() <= 0) {
+            throw new NonExistingPrimaryKeyError();
+        }
+
         // register foreign keys
         for (CreateQuery.ReferenceConstraint referenceData : query.getReferences()) {
             String targetTableName = referenceData.getTargetTableName();
