@@ -73,3 +73,10 @@ class NonExistingPrimaryKeyError extends DBException {
         super("Create table has failed: primary key does not exists in table definition");
     }
 }
+
+@SuppressWarnings("serial")
+class CharLengthError extends DBException {
+    public CharLengthError() {
+        super("Char length should be over 0");
+    }
+}

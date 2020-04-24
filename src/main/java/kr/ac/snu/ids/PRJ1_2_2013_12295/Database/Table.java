@@ -32,6 +32,11 @@ public class Table {
             throw new DuplicateColumnDefError();
         }
 
+        // check char length
+        if (column.getDataType() == DataType.CHAR && column.getCharLength() <= 0) {
+            throw new CharLengthError();
+        }
+
         column.setTableName(this.name);
         columns.put(column.getName(), column);
     }
