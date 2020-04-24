@@ -146,6 +146,58 @@ public class DBManager {
         }
     }
 
+    public void showTables() throws DBException {
+        Cursor cursor = null;
+        try {
+            cursor = database.openCursor(null, null);
+            DatabaseEntry key = new DatabaseEntry(Table.getRangeKey().getBytes("UTF-8"));
+            DatabaseEntry value = new DatabaseEntry();
+
+            if (cursor.getSearchKeyRange(key, value, LockMode.DEFAULT) == OperationStatus.NOTFOUND) {
+                throw new ShowTablesNoTable();
+            }
+
+            // collect table names
+            ArrayList<String> tableNames = new ArrayList<String>();
+            do {
+                String rawTableName = new String(key.getData(), "UTF-8");
+                tableNames.add(rawTableName.substring(Table.getRangeKey().length()));
+            } while (cursor.getNext(key, value, LockMode.DEFAULT) == OperationStatus.SUCCESS);
+
+            // print table names
+            System.out.println("-------------------------------");
+            for (String tableName : tableNames) {
+                System.out.println(tableName);
+            }
+            System.out.println("-------------------------------");
+        } catch (DBException e) {
+            // handled by callee
+            throw e;
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+                cursor = null;
+            }
+        }
+    }
+
+    // close handles.
+    public void close() {
+        if (database != null) {
+            database.close();
+        };
+        if (environment != null) {
+            environment.close();
+        }
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // helper functions
+    /////////////////////////////////////////////////////////////////////////
+
     // checks whether table with tableName exists.
     private boolean tableExists(String tableName) {
         Cursor cursor = null;
@@ -204,15 +256,5 @@ public class DBManager {
             }
         }
         return table;
-    }
-
-    // close handles.
-    public void close() {
-        if (database != null) {
-            database.close();
-        };
-        if (environment != null) {
-            environment.close();
-        }
     }
 }

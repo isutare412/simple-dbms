@@ -22,7 +22,8 @@ public class Table {
     }
 
     public String getKey() { return Table.getKey(name); }
-    static public String getKey(String name) { return "t-" + name; }
+    static public String getKey(String name) { return getRangeKey() + name; }
+    static public String getRangeKey() { return "t-"; }
 
     public String toValue() { return "exists"; }
 

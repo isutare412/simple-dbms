@@ -296,11 +296,14 @@ void descQuery() :
   tableName()
 }
 
-void showTablesQuery() :
+void showTablesQuery() throws DBException :
 {}
 {
   < SHOW >
   < TABLES >
+  {
+    manager.showTables();
+  }
 }
 
 /// 0. easy ones 

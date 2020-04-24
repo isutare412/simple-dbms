@@ -80,3 +80,14 @@ class CharLengthError extends DBException {
         super("Char length should be over 0");
     }
 }
+
+////////////////////////////////////////////////////////////////
+// Show tables exceptions
+////////////////////////////////////////////////////////////////
+
+@SuppressWarnings("serial")
+class ShowTablesNoTable extends DBException {
+    public ShowTablesNoTable() {
+        super("There is no table");
+    }
+}
