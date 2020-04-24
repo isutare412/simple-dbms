@@ -12,10 +12,18 @@ public class Table {
     }
 
     public String getName() { return name; }
+    public int getPrimaryKeyCount() {
+        int count = 0;
+        for (Column column : columns.values()) {
+            if (column.getPrimaryKey() == true) ++count;
+        }
+        return count;
+    }
 
     public String getKey() { return Table.getKey(name); }
     static public String getKey(String name) { return "t-" + name; }
-    public String getValue() { return "exists"; }
+
+    public String toValue() { return "exists"; }
 
     public void addColumn(Column column) throws DBException {
         // check column duplicates
@@ -25,5 +33,9 @@ public class Table {
 
         column.setTableName(this.name);
         columns.put(column.getName(), column);
+    }
+
+    public boolean hasColumn(String columnName) {
+        return columns.containsKey(columnName);
     }
 }

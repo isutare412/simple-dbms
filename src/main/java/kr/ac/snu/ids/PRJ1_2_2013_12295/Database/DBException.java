@@ -19,9 +19,50 @@ class DuplicateColumnDefError extends DBException {
 }
 
 @SuppressWarnings("serial")
+class DuplicatePrimaryKeyDefError extends DBException {
+    public DuplicatePrimaryKeyDefError () {
+        super("Create table has failed: primary key definition is duplicated");
+    }
+}
+
+@SuppressWarnings("serial")
 class TableExistenceError extends DBException {
     public TableExistenceError() {
         super("Create table has failed: table with the same name already exists");
     }
 }
 
+@SuppressWarnings("serial")
+class ReferenceTypeError extends DBException {
+    public ReferenceTypeError() {
+        super("Create table has failed: foreign key references wrong type");
+    }
+}
+
+@SuppressWarnings("serial")
+class ReferenceTableExistenceError extends DBException {
+    public ReferenceTableExistenceError() {
+        super("Create table has failed: foreign key references non existing table");
+    }
+}
+
+@SuppressWarnings("serial")
+class ReferenceColumnExistenceError extends DBException {
+    public ReferenceColumnExistenceError () {
+        super("Create table has failed: foreign key references non existing column");
+    }
+}
+
+@SuppressWarnings("serial")
+class ReferenceNonPrimaryKeyError extends DBException {
+    public ReferenceNonPrimaryKeyError  () {
+        super("Create table has failed: foreign key references non primary key column");
+    }
+}
+
+@SuppressWarnings("serial")
+class NonExistingColumnDefError extends DBException {
+    public NonExistingColumnDefError(String columnName) {
+        super("Create table has failed: \'" + columnName + "\' does not exists in column definition");
+    }
+}

@@ -8,6 +8,7 @@ PARSER_BEGIN(SimpleDBMSParser)
 package kr.ac.snu.ids.PRJ1_2_2013_12295;
 import java.io.UnsupportedEncodingException;
 import java.io.File;
+import java.util.ArrayList;
 
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseException;
@@ -365,42 +366,67 @@ void columnDefinition(Table table) throws DBException :
   }
 }
 
-void tableConstraintDefinition(Table table) :
+void tableConstraintDefinition(Table table) throws DBException :
 {}
 {
-  primaryKeyConstraint()
-| referentialConstraint()
+  primaryKeyConstraint(table)
+| referentialConstraint(table)
 }
 
-void primaryKeyConstraint() :
-{}
+void primaryKeyConstraint(Table table) throws DBException :
+{
+  ArrayList<String> primaryKeyNames;
+}
 {
   < PRIMARY >
   < KEY >
-  columnNameList()
+  primaryKeyNames = columnNameList()
+  {
+    manager.tableAddPrimaryKeys(table, primaryKeyNames);
+  }
 }
 
-void referentialConstraint() :
-{}
+void referentialConstraint(Table table) throws DBException :
+{
+  ArrayList<String> referencers;
+  ArrayList<String> referenceds;
+  String targetTableName;
+}
 {
   < FOREIGN >
   < KEY >
-  columnNameList()
+  referencers = columnNameList()
   < REFERENCES >
-  tableName()
-  columnNameList()
+  targetTableName = tableName()
+  referenceds = columnNameList()
+  {
+    manager.tableAddForeignKeys(table, referencers, referenceds, targetTableName);
+  }
 }
 
-void columnNameList() :
-{}
+ArrayList<String> columnNameList() :
+{
+  ArrayList<String> names;
+  String name;
+}
 {
   < LEFT_PAREN >
-  columnName()
+  name = columnName()
+  {
+    names = new ArrayList<String>();
+    names.add(name);
+  }
   (
     < COMMA >
-    columnName()
+    name = columnName()
+    {
+      names.add(name);
+    }
   )*
   < RIGHT_PAREN >
+  {
+    return names;
+  }
 }
 
 void dataType(Column column) :

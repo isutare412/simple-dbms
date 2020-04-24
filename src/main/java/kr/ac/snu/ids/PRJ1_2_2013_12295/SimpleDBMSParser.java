@@ -3,6 +3,7 @@
 package kr.ac.snu.ids.PRJ1_2_2013_12295;
 import java.io.UnsupportedEncodingException;
 import java.io.File;
+import java.util.ArrayList;
 
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseException;
@@ -313,14 +314,14 @@ column.setNullable(false);
 table.addColumn(column);
 }
 
-  static final public void tableConstraintDefinition(Table table) throws ParseException {
+  static final public void tableConstraintDefinition(Table table) throws ParseException, DBException {
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case PRIMARY:{
-      primaryKeyConstraint();
+      primaryKeyConstraint(table);
       break;
       }
     case FOREIGN:{
-      referentialConstraint();
+      referentialConstraint(table);
       break;
       }
     default:
@@ -330,24 +331,31 @@ table.addColumn(column);
     }
 }
 
-  static final public void primaryKeyConstraint() throws ParseException {
+  static final public void primaryKeyConstraint(Table table) throws ParseException, DBException {ArrayList<String> primaryKeyNames;
     jj_consume_token(PRIMARY);
     jj_consume_token(KEY);
-    columnNameList();
+    primaryKeyNames = columnNameList();
+manager.tableAddPrimaryKeys(table, primaryKeyNames);
 }
 
-  static final public void referentialConstraint() throws ParseException {
+  static final public void referentialConstraint(Table table) throws ParseException, DBException {ArrayList<String> referencers;
+  ArrayList<String> referenceds;
+  String targetTableName;
     jj_consume_token(FOREIGN);
     jj_consume_token(KEY);
-    columnNameList();
+    referencers = columnNameList();
     jj_consume_token(REFERENCES);
-    tableName();
-    columnNameList();
+    targetTableName = tableName();
+    referenceds = columnNameList();
+manager.tableAddForeignKeys(table, referencers, referenceds, targetTableName);
 }
 
-  static final public void columnNameList() throws ParseException {
+  static final public ArrayList<String> columnNameList() throws ParseException {ArrayList<String> names;
+  String name;
     jj_consume_token(LEFT_PAREN);
-    columnName();
+    name = columnName();
+names = new ArrayList<String>();
+    names.add(name);
     label_3:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -360,9 +368,12 @@ table.addColumn(column);
         break label_3;
       }
       jj_consume_token(COMMA);
-      columnName();
+      name = columnName();
+names.add(name);
     }
     jj_consume_token(RIGHT_PAREN);
+{if ("" != null) return names;}
+    throw new Error("Missing return statement in function");
 }
 
   static final public void dataType(Column column) throws ParseException {Token charLength;
@@ -803,26 +814,6 @@ void insertQuery() throws ParseException {
     finally { jj_save(3, xla); }
   }
 
-  static private boolean jj_3R_14()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (!jj_scan_token(39)) return false;
-    jj_scanpos = xsp;
-    if (!jj_scan_token(42)) return false;
-    jj_scanpos = xsp;
-    if (jj_scan_token(41)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_10()
- {
-    if (jj_3R_11()) return true;
-    if (jj_scan_token(COMP_OP)) return true;
-    if (jj_3R_11()) return true;
-    return false;
-  }
-
   static private boolean jj_3_3()
  {
     if (jj_3R_9()) return true;
@@ -884,6 +875,26 @@ void insertQuery() throws ParseException {
   static private boolean jj_3R_9()
  {
     if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_14()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (!jj_scan_token(39)) return false;
+    jj_scanpos = xsp;
+    if (!jj_scan_token(42)) return false;
+    jj_scanpos = xsp;
+    if (jj_scan_token(41)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_10()
+ {
+    if (jj_3R_11()) return true;
+    if (jj_scan_token(COMP_OP)) return true;
+    if (jj_3R_11()) return true;
     return false;
   }
 
