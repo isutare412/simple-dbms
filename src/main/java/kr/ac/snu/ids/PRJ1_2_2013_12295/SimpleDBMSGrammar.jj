@@ -331,7 +331,8 @@ void createTableQuery() throws DBException :
   }
   tableElementList(createQuery)
   {
-    manager.createTable(createQuery);
+    String result = manager.createTable(createQuery);
+    System.out.println(result);
   }
 }
 

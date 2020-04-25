@@ -259,7 +259,8 @@ void createTableQuery() throws ParseException, DBException {String tableName;
     tableName = tableName();
 createQuery = new CreateQuery(tableName);
     tableElementList(createQuery);
-manager.createTable(createQuery);
+String result = manager.createTable(createQuery);
+    System.out.println(result);
 }
 
   static final public void tableElementList(CreateQuery createQuery) throws ParseException {

@@ -46,7 +46,7 @@ public class DBManager {
     // table methods
     /////////////////////////////////////////////////////////////////////////
 
-    public void createTable(CreateQuery query) throws DBException {
+    public String createTable(CreateQuery query) throws DBException {
         String tableName = query.getTableName();
 
         // check if the table exists
@@ -144,6 +144,8 @@ public class DBManager {
                 txn = null;
             }
         }
+
+        return String.format("\'%s\' table is created", tableName);
     }
 
     public String showTables() throws DBException {
