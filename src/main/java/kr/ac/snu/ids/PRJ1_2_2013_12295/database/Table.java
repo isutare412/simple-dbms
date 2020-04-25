@@ -22,6 +22,20 @@ public class Table {
     }
 
     public String getName() { return name; }
+    public HashSet<String> getReferencedBy() { return referencedByTableNames; }
+    public HashSet<String> getReferencing() {
+        HashSet<String> tables = new HashSet<String>();
+
+        for (Column column : columns.values()) {
+            Reference reference = column.getReference();
+            if (reference == null) {
+                continue;
+            }
+            tables.add(reference.getTableName());
+        }
+
+        return tables;
+    }
     public int getPrimaryKeyCount() {
         int count = 0;
         for (Column column : columns.values()) {
@@ -69,6 +83,9 @@ public class Table {
 
     public void addReferencedBy(String tableName) {
         referencedByTableNames.add(tableName);
+    }
+    public boolean removeReferencedBy(String tableName) {
+        return referencedByTableNames.remove(tableName);
     }
 
     public void addColumn(Column column) throws DBException {

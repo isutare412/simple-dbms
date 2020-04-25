@@ -87,6 +87,8 @@ class Reference {
         this.columnName = columnName;
     }
 
+    public String getTableName() { return tableName; }
+
     public String toValue() {
         // format: ( tableName - columnName )
         StringBuilder builder = new StringBuilder();

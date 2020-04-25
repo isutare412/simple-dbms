@@ -228,10 +228,12 @@ q = PRINT_SHOW_TABLES;
 //below regex for queries are similar to the ones in grammar file. 
 
 /// 0. easy ones
-  static final public void dropTableQuery() throws ParseException {
+  static final public void dropTableQuery() throws ParseException, DBException {String tableName;
     jj_consume_token(DROP);
     jj_consume_token(TABLE);
-    tableName();
+    tableName = tableName();
+String result = manager.dropTable(tableName);
+    System.out.println(result);
 }
 
   static final public void descQuery() throws ParseException, DBException {String tableName;
@@ -827,26 +829,6 @@ void insertQuery() throws ParseException {
     finally { jj_save(3, xla); }
   }
 
-  static private boolean jj_3R_14()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (!jj_scan_token(39)) return false;
-    jj_scanpos = xsp;
-    if (!jj_scan_token(42)) return false;
-    jj_scanpos = xsp;
-    if (jj_scan_token(41)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_10()
- {
-    if (jj_3R_11()) return true;
-    if (jj_scan_token(COMP_OP)) return true;
-    if (jj_3R_11()) return true;
-    return false;
-  }
-
   static private boolean jj_3_3()
  {
     if (jj_3R_9()) return true;
@@ -908,6 +890,26 @@ void insertQuery() throws ParseException {
   static private boolean jj_3R_9()
  {
     if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_14()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (!jj_scan_token(39)) return false;
+    jj_scanpos = xsp;
+    if (!jj_scan_token(42)) return false;
+    jj_scanpos = xsp;
+    if (jj_scan_token(41)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_10()
+ {
+    if (jj_3R_11()) return true;
+    if (jj_scan_token(COMP_OP)) return true;
+    if (jj_3R_11()) return true;
     return false;
   }
 

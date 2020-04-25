@@ -3,6 +3,7 @@ package kr.ac.snu.ids.PRJ1_2_2013_12295.database;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.lang.StringBuilder;
 
 import com.sleepycat.je.Database;
@@ -107,6 +108,34 @@ public class DBManager {
         saveTable(table);
 
         return String.format("\'%s\' table is created", tableName);
+    }
+
+    public String dropTable(String tableName) throws DBException {
+        Table table = getTable(tableName);
+
+        // check if the table exists
+        if (table == null) {
+            throw new NoSuchTable();
+        }
+
+        // check if any other table references the table
+        HashSet<String> referecings = table.getReferencedBy();
+        if (referecings.size() > 0) {
+            throw new DropReferencedTableError(tableName);
+        }
+
+        // remove reference data of the table is referencing
+        HashSet<String> referenceds = table.getReferencing();
+        for (String referencedName : referenceds) {
+            Table referredTable = getTable(referencedName);
+            referredTable.removeReferencedBy(tableName);
+            saveTable(referredTable);
+        }
+
+        // delete table data from database
+        deleteTable(tableName);
+
+        return String.format("\'%s\' table is dropped", tableName);
     }
 
     public String showTables() throws DBException {

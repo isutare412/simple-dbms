@@ -282,12 +282,18 @@ int query() throws DBException :
 //below regex for queries are similar to the ones in grammar file. 
 
 /// 0. easy ones
-void dropTableQuery() :
-{}
+void dropTableQuery() throws DBException :
+{
+  String tableName;
+}
 {
   < DROP >
   < TABLE >
-  tableName()
+  tableName = tableName()
+  {
+    String result = manager.dropTable(tableName);
+    System.out.println(result);
+  }
 }
 void descQuery() throws DBException :
 {
