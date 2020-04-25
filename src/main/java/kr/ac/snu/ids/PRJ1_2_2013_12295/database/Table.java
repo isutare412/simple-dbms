@@ -126,6 +126,9 @@ public class Table {
         ArrayList<String> refers,
         ArrayList<String> referreds
     ) throws DBException {
+        // count unique columns that this table referenced
+        HashSet<String> referencedColumns = new HashSet<String>();
+
         for (int i = 0; i < refers.size(); i++) {
             String sourceColumnName = refers.get(i);
             Column sourceColumn = this.columns.get(sourceColumnName);
@@ -152,13 +155,16 @@ public class Table {
                 throw new ReferenceNonPrimaryKeyError();
             }
 
-            // check if all primary keys of referenced table are referenced
-            if (refers.size() != targetTable.getPrimaryKeyCount()) {
-                throw new ReferenceNonPrimaryKeyError();
-            }
+            // remember referenced unique columns for check
+            referencedColumns.add(targetColumn.getName());
 
             // set reference data to the referencing column
             sourceColumn.setReference(targetTable.getName(), targetColumnName);
+        }
+
+        // check if this table has referenced all primary keys of target table
+        if (referencedColumns.size() != targetTable.getPrimaryKeyCount()) {
+            throw new ReferenceNonPrimaryKeyError();
         }
 
         targetTable.addReferencedBy(getName());
