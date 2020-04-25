@@ -289,11 +289,17 @@ void dropTableQuery() :
   < TABLE >
   tableName()
 }
-void descQuery() :
-{}
+void descQuery() throws DBException :
+{
+  String tableName;
+}
 {
   < DESC >
-  tableName()
+  tableName = tableName()
+  {
+    String result = manager.descTable(tableName);
+    System.out.println(result);
+  }
 }
 
 void showTablesQuery() throws DBException :
@@ -302,7 +308,8 @@ void showTablesQuery() throws DBException :
   < SHOW >
   < TABLES >
   {
-    manager.showTables();
+    String result = manager.showTables();
+    System.out.println(result);
   }
 }
 

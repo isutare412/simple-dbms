@@ -19,7 +19,9 @@ public class Column {
     public String getTableName() { return tableName; }
     public DataType getDataType() { return type; }
     public int getCharLength() { return charLength; }
+    public boolean getNullable() { return nullable; }
     public boolean getPrimaryKey() { return primaryKey; }
+    public Reference getReference() { return reference; }
     public void setTableName(String name) { this.tableName = name; }
     public void setDataType(DataType type) { this.type = type; }
     public void setCharLength(int length) { this.charLength = length; }

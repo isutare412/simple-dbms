@@ -2,8 +2,8 @@ package kr.ac.snu.ids.PRJ1_2_2013_12295.database;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.util.Map;
 import java.util.ArrayList;
+import java.lang.StringBuilder;
 
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseException;
@@ -146,7 +146,9 @@ public class DBManager {
         }
     }
 
-    public void showTables() throws DBException {
+    public String showTables() throws DBException {
+        StringBuilder builder = new StringBuilder();
+
         Cursor cursor = null;
         try {
             cursor = database.openCursor(null, null);
@@ -165,11 +167,11 @@ public class DBManager {
             } while (cursor.getNext(key, value, LockMode.DEFAULT) == OperationStatus.SUCCESS);
 
             // print table names
-            System.out.println("-------------------------------");
+            builder.append("-------------------------------\n");
             for (String tableName : tableNames) {
-                System.out.println(tableName);
+                builder.append(String.format("%s\n", tableName));
             }
-            System.out.println("-------------------------------");
+            builder.append("-------------------------------");
         } catch (DBException e) {
             // handled by callee
             throw e;
@@ -182,6 +184,48 @@ public class DBManager {
                 cursor = null;
             }
         }
+
+        return builder.toString();
+    }
+
+    public String descTable(String tableName) throws DBException {
+        Table table = getTable(tableName);
+        if (table == null) {
+            throw new NoSuchTable();
+        }
+
+        StringBuilder builder = new StringBuilder();;
+        builder.append("-----------------------------------------------------------------\n");
+        builder.append(String.format("table_name [%s]\n", table.getName()));
+        builder.append(String.format("%-28s %-14s %-14s %s\n", "column_name", "type", "null", "key"));
+        for (Column column : table.columns.values()) {
+            String formattedType = column.getDataType().name();
+            if (column.getDataType() == DataType.CHAR) {
+                formattedType += String.format("(%d)", column.getCharLength());
+            }
+
+            // format keys
+            String formattedKey = "";
+            boolean isPrimaryKey = column.getPrimaryKey();
+            boolean isForeignKey = column.getReference() != null;
+            if (isPrimaryKey && isForeignKey) {
+                formattedKey = "PRI/FOR";
+            } else if (isPrimaryKey) {
+                formattedKey = "PRI";
+            } else if (isForeignKey) {
+                formattedKey = "FOR";
+            }
+
+            builder.append(
+                String.format("%-28s %-14s %-14s %s\n",
+                column.getName(),
+                formattedType,
+                column.getNullable() ? "Y" : "N",
+                formattedKey
+            ));
+        }
+        builder.append("-----------------------------------------------------------------");
+        return builder.toString();
     }
 
     // close handles.

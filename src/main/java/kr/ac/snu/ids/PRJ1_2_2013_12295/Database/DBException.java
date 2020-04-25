@@ -91,3 +91,14 @@ class ShowTablesNoTable extends DBException {
         super("There is no table");
     }
 }
+
+////////////////////////////////////////////////////////////////
+// Desc table exceptions
+////////////////////////////////////////////////////////////////
+
+@SuppressWarnings("serial")
+class NoSuchTable extends DBException {
+    public NoSuchTable() {
+        super("No such table");
+    }
+}

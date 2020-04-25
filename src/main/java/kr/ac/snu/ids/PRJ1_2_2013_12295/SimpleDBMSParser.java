@@ -234,15 +234,18 @@ q = PRINT_SHOW_TABLES;
     tableName();
 }
 
-  static final public void descQuery() throws ParseException {
+  static final public void descQuery() throws ParseException, DBException {String tableName;
     jj_consume_token(DESC);
-    tableName();
+    tableName = tableName();
+String result = manager.descTable(tableName);
+    System.out.println(result);
 }
 
   static final public void showTablesQuery() throws ParseException, DBException {
     jj_consume_token(SHOW);
     jj_consume_token(TABLES);
-manager.showTables();
+String result = manager.showTables();
+    System.out.println(result);
 }
 
 /// 0. easy ones 
@@ -823,44 +826,6 @@ void insertQuery() throws ParseException {
     finally { jj_save(3, xla); }
   }
 
-  static private boolean jj_3R_13()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_3()) jj_scanpos = xsp;
-    if (jj_3R_15()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_11()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (!jj_3R_12()) return false;
-    jj_scanpos = xsp;
-    if (jj_3R_13()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_12()
- {
-    if (jj_3R_14()) return true;
-    return false;
-  }
-
-  static private boolean jj_3_1()
- {
-    if (jj_3R_9()) return true;
-    if (jj_scan_token(PERIOD)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_9()
- {
-    if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
-    return false;
-  }
-
   static private boolean jj_3R_14()
  {
     Token xsp;
@@ -904,6 +869,44 @@ void insertQuery() throws ParseException {
  {
     if (jj_3R_9()) return true;
     if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_13()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_3()) jj_scanpos = xsp;
+    if (jj_3R_15()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_11()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (!jj_3R_12()) return false;
+    jj_scanpos = xsp;
+    if (jj_3R_13()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_12()
+ {
+    if (jj_3R_14()) return true;
+    return false;
+  }
+
+  static private boolean jj_3_1()
+ {
+    if (jj_3R_9()) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_9()
+ {
+    if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
     return false;
   }
 
