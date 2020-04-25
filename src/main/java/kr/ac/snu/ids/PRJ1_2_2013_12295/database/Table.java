@@ -2,14 +2,23 @@ package kr.ac.snu.ids.PRJ1_2_2013_12295.database;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.lang.StringBuilder;
 
 public class Table {
     private String name;
+    private HashSet<String> referencedByTableNames;
     HashMap<String, Column> columns;
+
+    static Pattern valuePattern = Pattern.compile("\\([^\\(\\)]*\\)|[^,]+");
+    static Pattern listPattern = Pattern.compile("[^,\\(\\)]+");
 
     public Table(String name) {
         this.name = name;
         this.columns = new HashMap<String, Column>();
+        this.referencedByTableNames = new HashSet<String>();
     }
 
     public String getName() { return name; }
@@ -25,7 +34,42 @@ public class Table {
     static public String getKey(String name) { return getRangeKey() + name; }
     static public String getRangeKey() { return "t-"; }
 
-    public String toValue() { return "exists"; }
+    public String toValue() {
+        // format: ( referencedBy, ... )
+        if (referencedByTableNames.size() <= 0) {
+            return "null";
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append('(');
+        for (String tableName : referencedByTableNames) {
+            builder.append(tableName);
+            builder.append(',');
+        }
+        builder.deleteCharAt(builder.length()-1); // cancel last ','
+        builder.append(')');
+
+        return builder.toString();
+    }
+
+    public void fromValue(String value) {
+        // format: ( referencedBy, ... )
+        Matcher valueMatcher = Table.valuePattern.matcher(value);
+
+        // parse reference data
+        valueMatcher.find();
+        String referenceList = valueMatcher.group();
+        if (referenceList.startsWith("(")) {
+            Matcher listMatcher = Table.listPattern.matcher(referenceList);
+            while (listMatcher.find()) {
+                referencedByTableNames.add(listMatcher.group());
+            }
+        }
+    }
+
+    public void addReferencedBy(String tableName) {
+        referencedByTableNames.add(tableName);
+    }
 
     public void addColumn(Column column) throws DBException {
         // check column duplicates
@@ -99,6 +143,8 @@ public class Table {
             // set reference data to the referencing column
             sourceColumn.setReference(targetTable.getName(), targetColumnName);
         }
+
+        targetTable.addReferencedBy(getName());
     }
 
     public boolean hasColumn(String columnName) {

@@ -43,7 +43,7 @@ public class DBManager {
     }
 
     /////////////////////////////////////////////////////////////////////////
-    // table methods
+    // query methods
     /////////////////////////////////////////////////////////////////////////
 
     public String createTable(CreateQuery query) throws DBException {
@@ -96,54 +96,15 @@ public class DBManager {
                 throw new ReferenceTableExistenceError();
             }
 
+            // register reference data to table model
             table.registerForeignKey(referredTable, refers, referreds);
+
+            // save reference data to referenced table
+            saveTable(referredTable);
         }
 
         // save created table model to database
-        Transaction txn = null;
-        Cursor cursor = null;
-
-        try {
-            // transaction required for table, column save process.
-            txn = environment.beginTransaction(null, null);
-            cursor = database.openCursor(null, null);
-
-            // save table name
-            DatabaseEntry tableKey = new DatabaseEntry(table.getKey().getBytes("UTF-8"));
-            DatabaseEntry tableValue = new DatabaseEntry(table.toValue().getBytes("UTF-8"));
-            if (cursor.putNoOverwrite(tableKey, tableValue) == OperationStatus.KEYEXIST) {
-                throw new TableExistenceError();
-            }
-
-            // save columns
-            for (Column column : table.columns.values()) {
-                DatabaseEntry columnKey = new DatabaseEntry(column.getKey().getBytes("UTF-8"));
-                DatabaseEntry columnValue = new DatabaseEntry(column.toValue().getBytes("UTF-8"));
-                cursor.put(columnKey, columnValue);
-            }
-
-            // commit transaction
-            cursor.close();
-            cursor = null;
-            txn.commit();
-            txn = null;
-        } catch (DBException e) {
-            // handled by callee
-            throw e;
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            e.printStackTrace();
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-                cursor = null;
-            }
-
-            if (txn != null) {
-                txn.abort();
-                txn = null;
-            }
-        }
+        saveTable(table);
 
         return String.format("\'%s\' table is created", tableName);
     }
@@ -272,10 +233,35 @@ public class DBManager {
         if (!tableExists(tableName)) {
             return null;
         }
+
+        // construct table model
         Table table = new Table(tableName);
 
-        // read all columns of the table
+        // read table reference data
         Cursor cursor = null;
+        try {
+            cursor = database.openCursor(null, null);
+            DatabaseEntry key = new DatabaseEntry(Table.getKey(tableName).getBytes("UTF-8"));
+            DatabaseEntry value = new DatabaseEntry();
+
+            if (cursor.getSearchKey(key, value, LockMode.DEFAULT) == OperationStatus.NOTFOUND) {
+                return null;
+            }
+
+            do {
+                table.fromValue(new String(value.getData(), "UTF-8"));
+            } while (cursor.getNextDup(key, value, LockMode.DEFAULT) == OperationStatus.SUCCESS);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+                cursor = null;
+            }
+        }
+
+        // read column data of the table
         try {
             cursor = database.openCursor(null, null);
             DatabaseEntry key = new DatabaseEntry(Column.getKey(tableName).getBytes("UTF-8"));
@@ -302,5 +288,87 @@ public class DBManager {
             }
         }
         return table;
+    }
+
+    // save table to database without any check. if the table already exists, it is overwrited.
+    private void saveTable(Table table) {
+        deleteTable(table.getName());
+
+        // save table model to database
+        Transaction txn = null;
+        Cursor cursor = null;
+
+        try {
+            // transaction required for table, column save process.
+            txn = environment.beginTransaction(null, null);
+            cursor = database.openCursor(null, null);
+
+            // save table name
+            DatabaseEntry tableKey = new DatabaseEntry(table.getKey().getBytes("UTF-8"));
+            DatabaseEntry tableValue = new DatabaseEntry(table.toValue().getBytes("UTF-8"));
+            if (cursor.putNoOverwrite(tableKey, tableValue) == OperationStatus.KEYEXIST) {
+                throw new TableExistenceError();
+            }
+
+            // save columns
+            for (Column column : table.columns.values()) {
+                DatabaseEntry columnKey = new DatabaseEntry(column.getKey().getBytes("UTF-8"));
+                DatabaseEntry columnValue = new DatabaseEntry(column.toValue().getBytes("UTF-8"));
+                cursor.put(columnKey, columnValue);
+            }
+
+            // commit transaction
+            cursor.close();
+            cursor = null;
+            txn.commit();
+            txn = null;
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+                cursor = null;
+            }
+
+            if (txn != null) {
+                txn.abort();
+                txn = null;
+            }
+        }
+    }
+
+    // delete all tableName related key-values. returns true if any key-value is deleted.
+    private boolean deleteTable(String tableName) {
+        boolean deleted = false;
+        deleted |= deleteKeys(Table.getKey(tableName));
+        deleted |= deleteKeys(Column.getKey(tableName));
+        return deleted;
+    }
+
+    // delete all key-value pairs with keyName key. returns true if any key is deleted.
+    private boolean deleteKeys(String keyName) {
+        Cursor cursor = null;
+        try {
+            cursor = database.openCursor(null, null);
+            DatabaseEntry key = new DatabaseEntry(keyName.getBytes("UTF-8"));
+
+            if (cursor.getSearchKey(key, null, LockMode.DEFAULT) == OperationStatus.NOTFOUND) {
+                return false;
+            }
+
+            do {
+                cursor.delete();
+            } while (cursor.getNextDup(key, null, LockMode.DEFAULT) == OperationStatus.SUCCESS);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+                cursor = null;
+            }
+        }
+        return true;
     }
 }

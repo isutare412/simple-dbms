@@ -1,6 +1,8 @@
 package kr.ac.snu.ids.PRJ1_2_2013_12295.database;
 
 import java.lang.StringBuilder;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class Column {
     private String name;
@@ -10,6 +12,8 @@ public class Column {
     private boolean nullable = true;
     private boolean primaryKey = false;
     private Reference reference = null;
+
+    static Pattern valuePattern = Pattern.compile("\\([^\\(\\)]*\\)|[^,]+");
 
     public Column(String name) {
         this.name = name;
@@ -61,17 +65,13 @@ public class Column {
 
     public static Column fromValue(String value) {
         // format: name , type , charLength , nullable , primaryKey , reference
-        String[] tokens = value.split(",");
-        if (tokens.length != 6) {
-            return null;
-        }
-
-        Column column = new Column(tokens[0]);
-        column.type = DataType.getEnum(tokens[1]);
-        column.charLength = Integer.parseInt(tokens[2]);
-        column.nullable = Boolean.parseBoolean(tokens[3]);
-        column.primaryKey = Boolean.parseBoolean(tokens[4]);
-        column.reference = Reference.fromValue(tokens[5]);
+        Matcher matcher = Column.valuePattern.matcher(value);
+        matcher.find(); Column column = new Column(matcher.group());
+        matcher.find(); column.type = DataType.getEnum(matcher.group());
+        matcher.find(); column.charLength = Integer.parseInt(matcher.group());
+        matcher.find(); column.nullable = Boolean.parseBoolean(matcher.group());
+        matcher.find(); column.primaryKey = Boolean.parseBoolean(matcher.group());
+        matcher.find(); column.reference = Reference.fromValue(matcher.group());
         return column;
     }
 }
@@ -80,26 +80,30 @@ class Reference {
     String tableName;
     String columnName;
 
+    static Pattern valuePattern = Pattern.compile("\\(([^\\(\\)]+)-([^\\(\\)]+)\\)");
+
     public Reference(String tableName, String columnName) {
         this.tableName = tableName;
         this.columnName = columnName;
     }
 
     public String toValue() {
-        // format: tableName - columnName
+        // format: ( tableName - columnName )
         StringBuilder builder = new StringBuilder();
+        builder.append('(');
         builder.append(tableName);
         builder.append('-');
         builder.append(columnName);
+        builder.append(')');
         return builder.toString();
     }
 
     static Reference fromValue(String value) {
-        // format: tableName - columnName
-        String[] tokens = value.split("-");
-        if (tokens.length != 2) {
+        // format: ( tableName - columnName )
+        Matcher matcher = Reference.valuePattern.matcher(value);
+        if (!matcher.find()) {
             return null;
         }
-        return new Reference(tokens[0], tokens[1]);
+        return new Reference(matcher.group(1), matcher.group(2));
     }
 }

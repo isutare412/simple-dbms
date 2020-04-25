@@ -102,3 +102,14 @@ class NoSuchTable extends DBException {
         super("No such table");
     }
 }
+
+////////////////////////////////////////////////////////////////
+// Drop table exceptions
+////////////////////////////////////////////////////////////////
+
+@SuppressWarnings("serial")
+class DropReferencedTableError extends DBException {
+    public DropReferencedTableError(String tableName) {
+        super("Drop table has failed: \'" + tableName + "\' is referenced by other table");
+    }
+}
