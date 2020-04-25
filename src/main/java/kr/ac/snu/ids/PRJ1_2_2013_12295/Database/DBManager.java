@@ -201,7 +201,7 @@ public class DBManager {
         builder.append(String.format("table_name [%s]\n", table.getName()));
         builder.append(String.format("%-28s %-14s %-14s %s\n", "column_name", "type", "null", "key"));
         for (Column column : table.columns.values()) {
-            String formattedType = column.getDataType().name();
+            String formattedType = column.getDataType().name().toLowerCase();
             if (column.getDataType() == DataType.CHAR) {
                 formattedType += String.format("(%d)", column.getCharLength());
             }
