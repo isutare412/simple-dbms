@@ -1,6 +1,7 @@
 package kr.ac.snu.ids.PRJ1_3_2013_12295.database;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.regex.Pattern;
@@ -172,5 +173,21 @@ public class Table {
 
     public boolean hasColumn(String columnName) {
         return columns.containsKey(columnName);
+    }
+
+    public ArrayList<Column> getOrderedColumns() {
+        if (columns.size() == 0) {
+            return null;
+        }
+
+        ArrayList<Column> ordered = new ArrayList<Column>();
+        ordered.addAll(columns.values());
+        ordered.sort(new Comparator<Column>() {
+            @Override
+            public int compare(Column lhs, Column rhs) {
+                return lhs.getOrder() - rhs.getOrder();
+            }
+        });
+        return ordered;
     }
 }

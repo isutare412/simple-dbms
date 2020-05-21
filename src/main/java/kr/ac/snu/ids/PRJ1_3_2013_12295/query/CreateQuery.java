@@ -44,7 +44,10 @@ public class CreateQuery {
     public int getPrimaryKeyAddCount() { return primaryKeyAddCount; }
     public ArrayList<ReferenceConstraint> getReferences() { return references; }
 
-    public void addColumn(Column column) { columns.add(column); }
+    public void addColumn(Column column) {
+        column.setOrder(columns.size());
+        columns.add(column);
+    }
     public void addPrimaryKeyColumn(String columnName) {
         primaryKeyColumns.add(columnName);
         primaryKeyAddCount++;

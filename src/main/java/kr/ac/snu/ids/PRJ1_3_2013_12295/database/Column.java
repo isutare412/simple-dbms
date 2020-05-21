@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 public class Column {
+    private int order;
     private String name;
     private String tableName;
     private DataType type;
@@ -19,6 +20,7 @@ public class Column {
         this.name = name;
     }
 
+    public int getOrder() { return order; }
     public String getName() { return name; }
     public String getTableName() { return tableName; }
     public DataType getDataType() { return type; }
@@ -26,6 +28,7 @@ public class Column {
     public boolean getNullable() { return nullable; }
     public boolean getPrimaryKey() { return primaryKey; }
     public Reference getReference() { return reference; }
+    public void setOrder(int order) { this.order = order; }
     public void setTableName(String name) { this.tableName = name; }
     public void setDataType(DataType type) { this.type = type; }
     public void setCharLength(int length) { this.charLength = length; }
@@ -47,9 +50,11 @@ public class Column {
     public static String getKey(String tableName) { return "c-" + tableName; }
 
     public String toValue() {
-        // format: name , type , charLength , nullable , primaryKey , reference
+        // format: name , order, type , charLength , nullable , primaryKey , reference
         StringBuilder builder = new StringBuilder();
         builder.append(name);
+        builder.append(',');
+        builder.append(String.valueOf(order));
         builder.append(',');
         builder.append(type.name());
         builder.append(',');
@@ -64,9 +69,10 @@ public class Column {
     }
 
     public static Column fromValue(String value) {
-        // format: name , type , charLength , nullable , primaryKey , reference
+        // format: name, order , type , charLength , nullable , primaryKey , reference
         Matcher matcher = Column.valuePattern.matcher(value);
         matcher.find(); Column column = new Column(matcher.group());
+        matcher.find(); column.order = Integer.parseInt(matcher.group());
         matcher.find(); column.type = DataType.getEnum(matcher.group());
         matcher.find(); column.charLength = Integer.parseInt(matcher.group());
         matcher.find(); column.nullable = Boolean.parseBoolean(matcher.group());
