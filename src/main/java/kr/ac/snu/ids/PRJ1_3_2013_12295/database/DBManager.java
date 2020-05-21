@@ -233,7 +233,7 @@ public class DBManager {
             System.out.println(name);
         }
         for (DataValue value : query.getColumnValues()) {
-            System.out.println(value.toString());
+            System.out.println(value.serialize());
         }
 
         return "The row is inserted";
@@ -297,7 +297,7 @@ public class DBManager {
             }
 
             do {
-                table.fromValue(new String(value.getData(), "UTF-8"));
+                table.deserialize(new String(value.getData(), "UTF-8"));
             } while (cursor.getNextDup(key, value, LockMode.DEFAULT) == OperationStatus.SUCCESS);
         } catch (Exception e) {
             e.printStackTrace();
@@ -320,7 +320,7 @@ public class DBManager {
             }
 
             do {
-                Column column = Column.fromValue(new String(value.getData(), "UTF-8"));
+                Column column = Column.deserialize(new String(value.getData(), "UTF-8"));
                 if (column == null) {
                     return null;
                 }
@@ -353,7 +353,7 @@ public class DBManager {
 
             // save table name
             DatabaseEntry tableKey = new DatabaseEntry(table.getKey().getBytes("UTF-8"));
-            DatabaseEntry tableValue = new DatabaseEntry(table.toValue().getBytes("UTF-8"));
+            DatabaseEntry tableValue = new DatabaseEntry(table.serialize().getBytes("UTF-8"));
             if (cursor.putNoOverwrite(tableKey, tableValue) == OperationStatus.KEYEXIST) {
                 throw new TableExistenceError();
             }
@@ -361,7 +361,7 @@ public class DBManager {
             // save columns
             for (Column column : table.columns.values()) {
                 DatabaseEntry columnKey = new DatabaseEntry(column.getKey().getBytes("UTF-8"));
-                DatabaseEntry columnValue = new DatabaseEntry(column.toValue().getBytes("UTF-8"));
+                DatabaseEntry columnValue = new DatabaseEntry(column.serialize().getBytes("UTF-8"));
                 cursor.put(columnKey, columnValue);
             }
 

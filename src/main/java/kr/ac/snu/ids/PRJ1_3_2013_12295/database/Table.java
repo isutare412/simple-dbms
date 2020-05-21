@@ -49,7 +49,7 @@ public class Table {
     static public String getKey(String name) { return getRangeKey() + name; }
     static public String getRangeKey() { return "t-"; }
 
-    public String toValue() {
+    public String serialize() {
         // format: ( referencedBy, ... )
         if (referencedByTableNames.size() <= 0) {
             return "null";
@@ -67,7 +67,7 @@ public class Table {
         return builder.toString();
     }
 
-    public void fromValue(String value) {
+    public void deserialize(String value) {
         // format: ( referencedBy, ... )
         Matcher valueMatcher = Table.valuePattern.matcher(value);
 

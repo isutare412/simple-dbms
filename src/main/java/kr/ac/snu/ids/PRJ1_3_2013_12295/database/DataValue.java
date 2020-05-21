@@ -49,7 +49,7 @@ public class DataValue {
         }
     }
 
-    public String toString() {
+    public String serialize() {
         String str = "";
         if (isNull) {
             str = "NULL";

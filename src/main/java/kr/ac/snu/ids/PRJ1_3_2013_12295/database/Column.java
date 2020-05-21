@@ -39,7 +39,7 @@ public class Column {
     public String getKey() { return getKey(tableName); }
     public static String getKey(String tableName) { return "c-" + tableName; }
 
-    public String toValue() {
+    public String serialize() {
         // format: name , order, type , charLength , nullable , primaryKey , reference
         StringBuilder builder = new StringBuilder();
         builder.append(name);
@@ -54,11 +54,11 @@ public class Column {
         builder.append(',');
         builder.append(String.valueOf(primaryKey));
         builder.append(',');
-        builder.append(reference == null ? "null" : reference.toValue());
+        builder.append(reference == null ? "null" : reference.serialize());
         return builder.toString();
     }
 
-    public static Column fromValue(String value) {
+    public static Column deserialize(String value) {
         // format: name, order , type , charLength , nullable , primaryKey , reference
         Matcher matcher = Column.valuePattern.matcher(value);
         matcher.find(); Column column = new Column(matcher.group());
@@ -67,7 +67,7 @@ public class Column {
         matcher.find(); column.type.charLength = Integer.parseInt(matcher.group());
         matcher.find(); column.nullable = Boolean.parseBoolean(matcher.group());
         matcher.find(); column.primaryKey = Boolean.parseBoolean(matcher.group());
-        matcher.find(); column.reference = Reference.fromValue(matcher.group());
+        matcher.find(); column.reference = Reference.deserialize(matcher.group());
         return column;
     }
 }
@@ -85,7 +85,7 @@ class Reference {
 
     public String getTableName() { return tableName; }
 
-    public String toValue() {
+    public String serialize() {
         // format: ( tableName - columnName )
         StringBuilder builder = new StringBuilder();
         builder.append('(');
@@ -96,7 +96,7 @@ class Reference {
         return builder.toString();
     }
 
-    static Reference fromValue(String value) {
+    static Reference deserialize(String value) {
         // format: ( tableName - columnName )
         Matcher matcher = Reference.valuePattern.matcher(value);
         if (!matcher.find()) {
