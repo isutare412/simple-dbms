@@ -113,3 +113,43 @@ class DropReferencedTableError extends DBException {
         super("Drop table has failed: \'" + tableName + "\' is referenced by other table");
     }
 }
+
+////////////////////////////////////////////////////////////////
+// Insert exceptions
+////////////////////////////////////////////////////////////////
+
+@SuppressWarnings("serial")
+class InsertDuplicatePrimaryKeyError extends DBException {
+    public InsertDuplicatePrimaryKeyError() {
+        super("Insertion has failed: Primary key duplication");
+    }
+}
+
+@SuppressWarnings("serial")
+class InsertReferentialIntegrityError extends DBException {
+    public InsertReferentialIntegrityError () {
+        super("Insertion has failed: Referential integrity violation");
+    }
+}
+
+@SuppressWarnings("serial")
+class InsertTypeMismatchError extends DBException {
+    public InsertTypeMismatchError () {
+        super("Insertion has failed: Types are not matched");
+    }
+}
+
+@SuppressWarnings("serial")
+class InsertColumnExistenceError extends DBException {
+    public InsertColumnExistenceError (String columnName) {
+        super("Insertion has failed: \'" + columnName + "\' does not exist");
+    }
+}
+
+@SuppressWarnings("serial")
+class InsertColumnNonNullableError extends DBException {
+    public InsertColumnNonNullableError (String columnName) {
+        super("Insertion has failed: \'" + columnName + "\' is not nullable");
+    }
+}
+

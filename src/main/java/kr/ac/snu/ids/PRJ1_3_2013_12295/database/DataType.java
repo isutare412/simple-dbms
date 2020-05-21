@@ -4,6 +4,11 @@ public class DataType {
     public BaseType baseType;
     public int charLength;
 
+    public DataType() {
+        baseType = BaseType.INT;
+        charLength = 0;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null || !DataType.class.isAssignableFrom(obj.getClass())) {

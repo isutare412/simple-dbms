@@ -673,18 +673,31 @@ void selectQuery() throws ParseException {
     }
 }
 
-  static final public void comparableValue() throws ParseException {
+  static final public DataValue comparableValue() throws ParseException {DataValue dataValue;
+  Token rawValue;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case INT_VALUE:{
-      jj_consume_token(INT_VALUE);
+      rawValue = jj_consume_token(INT_VALUE);
+DataType type = new DataType();
+      type.baseType = BaseType.INT;
+      dataValue = new DataValue(type);
+      dataValue.parseData(rawValue.toString());
       break;
       }
     case CHAR_STRING:{
-      jj_consume_token(CHAR_STRING);
+      rawValue = jj_consume_token(CHAR_STRING);
+DataType type = new DataType();
+      type.baseType = BaseType.CHAR;
+      dataValue = new DataValue(type);
+      dataValue.parseData(rawValue.toString());
       break;
       }
     case DATE_VALUE:{
-      jj_consume_token(DATE_VALUE);
+      rawValue = jj_consume_token(DATE_VALUE);
+DataType type = new DataType();
+      type.baseType = BaseType.DATE;
+      dataValue = new DataValue(type);
+      dataValue.parseData(rawValue.toString());
       break;
       }
     default:
@@ -692,6 +705,8 @@ void selectQuery() throws ParseException {
       jj_consume_token(-1);
       throw new ParseException();
     }
+{if ("" != null) return dataValue;}
+    throw new Error("Missing return statement in function");
 }
 
   static final public void nullPredicate() throws ParseException {
@@ -724,11 +739,15 @@ void selectQuery() throws ParseException {
 
 /// 3. for insert,delete
   static final public 
-void insertQuery() throws ParseException {
+void insertQuery() throws ParseException, DBException {String tableName;
+  InsertQuery insertQuery;
     jj_consume_token(INSERT);
     jj_consume_token(INTO);
-    tableName();
-    insertColumnsAndSource();
+    tableName = tableName();
+insertQuery = new InsertQuery(tableName);
+    insertColumnsAndSource(insertQuery);
+String result = manager.insert(insertQuery);
+    System.out.println(result);
 }
 
   static final public void deleteQuery() throws ParseException {
@@ -746,23 +765,28 @@ void insertQuery() throws ParseException {
     }
 }
 
-  static final public void insertColumnsAndSource() throws ParseException {
+  static final public void insertColumnsAndSource(InsertQuery insertQuery) throws ParseException {ArrayList<String> columnNames;
+  ArrayList<DataValue> columnValues;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case LEFT_PAREN:{
-      columnNameList();
+      columnNames = columnNameList();
+insertQuery.setColumnNames(columnNames);
       break;
       }
     default:
       jj_la1[26] = jj_gen;
       ;
     }
-    valueList();
+    columnValues = valueList();
+insertQuery.setColumnValues(columnValues);
 }
 
-  static final public void valueList() throws ParseException {
+  static final public ArrayList<DataValue> valueList() throws ParseException {ArrayList<DataValue> dataValues = new ArrayList<DataValue>();
+  DataValue dataValue;
     jj_consume_token(VALUES);
     jj_consume_token(LEFT_PAREN);
-    value();
+    dataValue = value();
+dataValues.add(dataValue);
     label_8:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -775,21 +799,25 @@ void insertQuery() throws ParseException {
         break label_8;
       }
       jj_consume_token(COMMA);
-      value();
+      dataValue = value();
+dataValues.add(dataValue);
     }
     jj_consume_token(RIGHT_PAREN);
+{if ("" != null) return dataValues;}
+    throw new Error("Missing return statement in function");
 }
 
-  static final public void value() throws ParseException {
+  static final public DataValue value() throws ParseException {DataValue dataValue;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case NULL:{
       jj_consume_token(NULL);
+dataValue = new DataValue();
       break;
       }
     case INT_VALUE:
     case DATE_VALUE:
     case CHAR_STRING:{
-      comparableValue();
+      dataValue = comparableValue();
       break;
       }
     default:
@@ -797,6 +825,8 @@ void insertQuery() throws ParseException {
       jj_consume_token(-1);
       throw new ParseException();
     }
+{if ("" != null) return dataValue;}
+    throw new Error("Missing return statement in function");
 }
 
   static private boolean jj_2_1(int xla)
@@ -831,32 +861,6 @@ void insertQuery() throws ParseException {
     finally { jj_save(3, xla); }
   }
 
-  static private boolean jj_3_3()
- {
-    if (jj_3R_9()) return true;
-    if (jj_scan_token(PERIOD)) return true;
-    return false;
-  }
-
-  static private boolean jj_3_2()
- {
-    if (jj_3R_10()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_15()
- {
-    if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
-    return false;
-  }
-
-  static private boolean jj_3_4()
- {
-    if (jj_3R_9()) return true;
-    if (jj_scan_token(PERIOD)) return true;
-    return false;
-  }
-
   static private boolean jj_3R_13()
  {
     Token xsp;
@@ -882,10 +886,28 @@ void insertQuery() throws ParseException {
     return false;
   }
 
+  static private boolean jj_3R_16()
+ {
+    if (jj_scan_token(INT_VALUE)) return true;
+    return false;
+  }
+
   static private boolean jj_3_1()
  {
     if (jj_3R_9()) return true;
     if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_14()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (!jj_3R_16()) return false;
+    jj_scanpos = xsp;
+    if (!jj_3R_17()) return false;
+    jj_scanpos = xsp;
+    if (jj_3R_18()) return true;
     return false;
   }
 
@@ -895,23 +917,49 @@ void insertQuery() throws ParseException {
     return false;
   }
 
-  static private boolean jj_3R_14()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (!jj_scan_token(39)) return false;
-    jj_scanpos = xsp;
-    if (!jj_scan_token(42)) return false;
-    jj_scanpos = xsp;
-    if (jj_scan_token(41)) return true;
-    return false;
-  }
-
   static private boolean jj_3R_10()
  {
     if (jj_3R_11()) return true;
     if (jj_scan_token(COMP_OP)) return true;
     if (jj_3R_11()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_18()
+ {
+    if (jj_scan_token(DATE_VALUE)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_3()
+ {
+    if (jj_3R_9()) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_4()
+ {
+    if (jj_3R_9()) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_2()
+ {
+    if (jj_3R_10()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_15()
+ {
+    if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_17()
+ {
+    if (jj_scan_token(CHAR_STRING)) return true;
     return false;
   }
 

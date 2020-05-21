@@ -226,6 +226,19 @@ public class DBManager {
         return builder.toString();
     }
 
+    public String insert(InsertQuery query) throws DBException {
+
+        System.out.println(query.getTableName());
+        for (String name : query.getColumnNames()) {
+            System.out.println(name);
+        }
+        for (DataValue value : query.getColumnValues()) {
+            System.out.println(value.toString());
+        }
+
+        return "The row is inserted";
+    }
+
     // close handles.
     public void close() {
         if (database != null) {

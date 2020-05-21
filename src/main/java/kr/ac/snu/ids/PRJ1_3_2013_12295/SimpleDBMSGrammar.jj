@@ -461,28 +461,28 @@ void dataType(Column column) :
 }
 {
   (
-  < INT >
-  {
-      type.baseType = BaseType.INT;
-  }
-| (
-    < CHAR >
-    < LEFT_PAREN >
-    charLength = < INT_VALUE >
-    < RIGHT_PAREN >
+    < INT >
     {
+      type.baseType = BaseType.INT;
+    }
+  | (
+      < CHAR >
+      < LEFT_PAREN >
+      charLength = < INT_VALUE >
+      < RIGHT_PAREN >
+      {
         type.baseType = BaseType.CHAR;
         type.charLength = Integer.parseInt(charLength.toString());
-    }
-  )
-| < DATE >
-  {
+      }
+    )
+  | < DATE >
+    {
       type.baseType = BaseType.DATE;
-  }
+    }
   )
   {
     column.setDataType(type);
-}
+  }
 }
 
 String tableName() :
@@ -668,12 +668,38 @@ void compOperand():
  )
 }
 
-void comparableValue():
-{}
+DataValue comparableValue():
 {
-  < INT_VALUE >
-| < CHAR_STRING >
-| < DATE_VALUE >
+  DataValue dataValue;
+  Token rawValue;
+}
+{
+  (
+    rawValue = < INT_VALUE >
+    {
+      DataType type = new DataType();
+      type.baseType = BaseType.INT;
+      dataValue = new DataValue(type);
+      dataValue.parseData(rawValue.toString());
+    }
+  | rawValue = < CHAR_STRING >
+    {
+      DataType type = new DataType();
+      type.baseType = BaseType.CHAR;
+      dataValue = new DataValue(type);
+      dataValue.parseData(rawValue.toString());
+    }
+  | rawValue = < DATE_VALUE >
+    {
+      DataType type = new DataType();
+      type.baseType = BaseType.DATE;
+      dataValue = new DataValue(type);
+      dataValue.parseData(rawValue.toString());
+    }
+  )
+  {
+    return dataValue;
+  }
 }
 
 void nullPredicate():
@@ -706,13 +732,23 @@ void nullOperation():
 
 /// 3. for insert,delete
 
-void insertQuery() :
-{}
+void insertQuery() throws DBException :
+{
+  String tableName;
+  InsertQuery insertQuery;
+}
 {
   < INSERT >
   < INTO >
-  tableName()
-  insertColumnsAndSource()
+  tableName = tableName()
+  {
+    insertQuery = new InsertQuery(tableName);
+  }
+  insertColumnsAndSource(insertQuery)
+  {
+    String result = manager.insert(insertQuery);
+    System.out.println(result);
+  }
 }
 
 void deleteQuery() :
@@ -726,33 +762,64 @@ void deleteQuery() :
   )?
 }
 
-void insertColumnsAndSource() :
-{}
+void insertColumnsAndSource(InsertQuery insertQuery) :
+{
+  ArrayList<String> columnNames;
+  ArrayList<DataValue> columnValues;
+}
 {
   (
-    columnNameList()
+    columnNames = columnNameList()
+    {
+      insertQuery.setColumnNames(columnNames);
+    }
   )?
-  valueList()
+  columnValues = valueList()
+  {
+    insertQuery.setColumnValues(columnValues);
+  }
 }
 
-void valueList() :
-{}
+ArrayList<DataValue> valueList() :
+{
+  ArrayList<DataValue> dataValues = new ArrayList<DataValue>();
+  DataValue dataValue;
+}
 {
   < VALUES >
   < LEFT_PAREN >
-  value()
+  dataValue = value()
+  {
+    dataValues.add(dataValue);
+  }
   (
     < COMMA >
-    value()
+    dataValue = value()
+    {
+      dataValues.add(dataValue);
+    }
   )*
   < RIGHT_PAREN >
+  {
+    return dataValues;
+  }
 }
 
-void value() :
-{}
+DataValue value() :
 {
-  < NULL >
-|  comparableValue()
+  DataValue dataValue;
+}
+{
+  (
+    < NULL >
+    {
+      dataValue = new DataValue();
+    }
+  | dataValue = comparableValue()
+  )
+  {
+    return dataValue;
+  }
 }
 
 /// 3. for insert,delete
