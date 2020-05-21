@@ -363,13 +363,13 @@ void tableElement(CreateQuery createQuery) :
 
 void columnDefinition(CreateQuery createQuery) :
 {
-  Column column;
+  ColumnSchema column;
   String name;
 }
 {
   name = columnName()
   {
-    column = new Column(name);
+    column = new ColumnSchema(name);
   }
   dataType(column)
   (
@@ -454,7 +454,7 @@ ArrayList<String> columnNameList() :
   }
 }
 
-void dataType(Column column) :
+void dataType(ColumnSchema column) :
 {
   Token charLength;
   DataType type = new DataType();

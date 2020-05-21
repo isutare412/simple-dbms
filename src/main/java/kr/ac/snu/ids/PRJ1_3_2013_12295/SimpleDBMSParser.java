@@ -303,10 +303,10 @@ String result = manager.createTable(createQuery);
     }
 }
 
-  static final public void columnDefinition(CreateQuery createQuery) throws ParseException {Column column;
+  static final public void columnDefinition(CreateQuery createQuery) throws ParseException {ColumnSchema column;
   String name;
     name = columnName();
-column = new Column(name);
+column = new ColumnSchema(name);
     dataType(column);
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case NOT:{
@@ -391,7 +391,7 @@ names.add(name);
     throw new Error("Missing return statement in function");
 }
 
-  static final public void dataType(Column column) throws ParseException {Token charLength;
+  static final public void dataType(ColumnSchema column) throws ParseException {Token charLength;
   DataType type = new DataType();
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case INT:{

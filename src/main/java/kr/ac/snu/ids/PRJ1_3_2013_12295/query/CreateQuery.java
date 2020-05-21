@@ -25,26 +25,26 @@ public class CreateQuery {
     }
 
     private String tableName;
-    private ArrayList<Column> columns;
+    private ArrayList<ColumnSchema> columns;
     private ArrayList<String> primaryKeyColumns;
     private int primaryKeyAddCount;
     private ArrayList<ReferenceConstraint> references;
 
     public CreateQuery(String tableName) {
         this.tableName = tableName;
-        columns = new ArrayList<Column>();
+        columns = new ArrayList<ColumnSchema>();
         primaryKeyColumns = new ArrayList<String>();
         primaryKeyAddCount = 0;
         references = new ArrayList<ReferenceConstraint>();
     }
 
     public String getTableName() { return tableName; }
-    public ArrayList<Column> getColumns() { return columns; }
+    public ArrayList<ColumnSchema> getColumns() { return columns; }
     public ArrayList<String> getPrimaryKeyColumns() { return primaryKeyColumns; }
     public int getPrimaryKeyAddCount() { return primaryKeyAddCount; }
     public ArrayList<ReferenceConstraint> getReferences() { return references; }
 
-    public void addColumn(Column column) {
+    public void addColumn(ColumnSchema column) {
         column.setOrder(columns.size());
         columns.add(column);
     }

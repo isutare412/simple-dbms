@@ -8,17 +8,17 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.lang.StringBuilder;
 
-public class Table {
+public class TableSchema {
     private String name;
     private HashSet<String> referencedByTableNames;
-    HashMap<String, Column> columns;
+    HashMap<String, ColumnSchema> columns;
 
     static Pattern valuePattern = Pattern.compile("\\([^\\(\\)]*\\)|[^,]+");
     static Pattern listPattern = Pattern.compile("[^,\\(\\)]+");
 
-    public Table(String name) {
+    public TableSchema(String name) {
         this.name = name;
-        this.columns = new HashMap<String, Column>();
+        this.columns = new HashMap<String, ColumnSchema>();
         this.referencedByTableNames = new HashSet<String>();
     }
 
@@ -27,7 +27,7 @@ public class Table {
     public HashSet<String> getReferencing() {
         HashSet<String> tables = new HashSet<String>();
 
-        for (Column column : columns.values()) {
+        for (ColumnSchema column : columns.values()) {
             Reference reference = column.getReference();
             if (reference == null) {
                 continue;
@@ -39,13 +39,13 @@ public class Table {
     }
     public int getPrimaryKeyCount() {
         int count = 0;
-        for (Column column : columns.values()) {
+        for (ColumnSchema column : columns.values()) {
             if (column.getPrimaryKey() == true) ++count;
         }
         return count;
     }
 
-    public String getKey() { return Table.getKey(name); }
+    public String getKey() { return TableSchema.getKey(name); }
     static public String getKey(String name) { return getRangeKey() + name; }
     static public String getRangeKey() { return "t-"; }
 
@@ -69,13 +69,13 @@ public class Table {
 
     public void deserialize(String value) {
         // format: ( referencedBy, ... )
-        Matcher valueMatcher = Table.valuePattern.matcher(value);
+        Matcher valueMatcher = TableSchema.valuePattern.matcher(value);
 
         // parse reference data
         valueMatcher.find();
         String referenceList = valueMatcher.group();
         if (referenceList.startsWith("(")) {
-            Matcher listMatcher = Table.listPattern.matcher(referenceList);
+            Matcher listMatcher = TableSchema.listPattern.matcher(referenceList);
             while (listMatcher.find()) {
                 referencedByTableNames.add(listMatcher.group());
             }
@@ -89,7 +89,7 @@ public class Table {
         return referencedByTableNames.remove(tableName);
     }
 
-    public void addColumn(Column column) throws DBException {
+    public void addColumn(ColumnSchema column) throws DBException {
         // check column duplicates
         if (columns.containsKey(column.getName())) {
             throw new DuplicateColumnDefError();
@@ -105,7 +105,7 @@ public class Table {
     }
 
     public void registerPrimaryKey(String columnName) throws DBException {
-        Column column = columns.get(columnName);
+        ColumnSchema column = columns.get(columnName);
 
         // check if the column exists
         if (column == null) {
@@ -123,7 +123,7 @@ public class Table {
     }
 
     public void registerForeignKey(
-        Table targetTable,
+        TableSchema targetTable,
         ArrayList<String> refers,
         ArrayList<String> referreds
     ) throws DBException {
@@ -132,9 +132,9 @@ public class Table {
 
         for (int i = 0; i < refers.size(); i++) {
             String sourceColumnName = refers.get(i);
-            Column sourceColumn = this.columns.get(sourceColumnName);
+            ColumnSchema sourceColumn = this.columns.get(sourceColumnName);
             String targetColumnName = referreds.get(i);
-            Column targetColumn = targetTable.columns.get(targetColumnName);
+            ColumnSchema targetColumn = targetTable.columns.get(targetColumnName);
 
             // check the referencing column exists
             if (sourceColumn == null) {
@@ -175,16 +175,16 @@ public class Table {
         return columns.containsKey(columnName);
     }
 
-    public ArrayList<Column> getOrderedColumns() {
+    public ArrayList<ColumnSchema> getOrderedColumns() {
         if (columns.size() == 0) {
             return null;
         }
 
-        ArrayList<Column> ordered = new ArrayList<Column>();
+        ArrayList<ColumnSchema> ordered = new ArrayList<ColumnSchema>();
         ordered.addAll(columns.values());
-        ordered.sort(new Comparator<Column>() {
+        ordered.sort(new Comparator<ColumnSchema>() {
             @Override
-            public int compare(Column lhs, Column rhs) {
+            public int compare(ColumnSchema lhs, ColumnSchema rhs) {
                 return lhs.getOrder() - rhs.getOrder();
             }
         });

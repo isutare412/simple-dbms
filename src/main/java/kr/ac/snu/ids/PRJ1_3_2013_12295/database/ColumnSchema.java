@@ -4,7 +4,7 @@ import java.lang.StringBuilder;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-public class Column {
+public class ColumnSchema {
     private int order;
     private String name;
     private String tableName;
@@ -15,7 +15,7 @@ public class Column {
 
     static Pattern valuePattern = Pattern.compile("\\([^\\(\\)]*\\)|[^,]+");
 
-    public Column(String name) {
+    public ColumnSchema(String name) {
         this.name = name;
         type = new DataType();
     }
@@ -34,7 +34,7 @@ public class Column {
     public void setPrimaryKey(boolean able) { this.primaryKey = able; }
     public void setReference(String tableName, String columnName) { reference = new Reference(tableName, columnName); }
 
-    public boolean isSameType(Column rhs) { return type.equals(rhs.type); }
+    public boolean isSameType(ColumnSchema rhs) { return type.equals(rhs.type); }
 
     public String getKey() { return getKey(tableName); }
     public static String getKey(String tableName) { return "c-" + tableName; }
@@ -58,10 +58,10 @@ public class Column {
         return builder.toString();
     }
 
-    public static Column deserialize(String value) {
+    public static ColumnSchema deserialize(String value) {
         // format: name, order , type , charLength , nullable , primaryKey , reference
-        Matcher matcher = Column.valuePattern.matcher(value);
-        matcher.find(); Column column = new Column(matcher.group());
+        Matcher matcher = ColumnSchema.valuePattern.matcher(value);
+        matcher.find(); ColumnSchema column = new ColumnSchema(matcher.group());
         matcher.find(); column.order = Integer.parseInt(matcher.group());
         matcher.find(); column.type.baseType = BaseType.getEnum(matcher.group());
         matcher.find(); column.type.charLength = Integer.parseInt(matcher.group());

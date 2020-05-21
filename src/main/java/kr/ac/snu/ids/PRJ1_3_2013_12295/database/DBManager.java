@@ -56,10 +56,10 @@ public class DBManager {
         }
 
         // create table model
-        Table table = new Table(tableName);
+        TableSchema table = new TableSchema(tableName);
 
         // add column type data
-        for (Column column : query.getColumns()) {
+        for (ColumnSchema column : query.getColumns()) {
             table.addColumn(column);
         }
 
@@ -95,7 +95,7 @@ public class DBManager {
             }
 
             // read target table from database
-            Table referredTable = getTable(targetTableName);
+            TableSchema referredTable = getTable(targetTableName);
 
             // check if target table exists
             if (referredTable == null) {
@@ -116,7 +116,7 @@ public class DBManager {
     }
 
     public String dropTable(String tableName) throws DBException {
-        Table table = getTable(tableName);
+        TableSchema table = getTable(tableName);
 
         // check if the table exists
         if (table == null) {
@@ -132,7 +132,7 @@ public class DBManager {
         // remove reference data of the table is referencing
         HashSet<String> referenceds = table.getReferencing();
         for (String referencedName : referenceds) {
-            Table referredTable = getTable(referencedName);
+            TableSchema referredTable = getTable(referencedName);
             referredTable.removeReferencedBy(tableName);
             saveTable(referredTable);
         }
@@ -149,7 +149,7 @@ public class DBManager {
         Cursor cursor = null;
         try {
             cursor = database.openCursor(null, null);
-            DatabaseEntry key = new DatabaseEntry(Table.getRangeKey().getBytes("UTF-8"));
+            DatabaseEntry key = new DatabaseEntry(TableSchema.getRangeKey().getBytes("UTF-8"));
             DatabaseEntry value = new DatabaseEntry();
 
             if (cursor.getSearchKeyRange(key, value, LockMode.DEFAULT) == OperationStatus.NOTFOUND) {
@@ -160,7 +160,7 @@ public class DBManager {
             ArrayList<String> tableNames = new ArrayList<String>();
             do {
                 String rawTableName = new String(key.getData(), "UTF-8");
-                tableNames.add(rawTableName.substring(Table.getRangeKey().length()));
+                tableNames.add(rawTableName.substring(TableSchema.getRangeKey().length()));
             } while (cursor.getNext(key, value, LockMode.DEFAULT) == OperationStatus.SUCCESS);
 
             // print table names
@@ -186,7 +186,7 @@ public class DBManager {
     }
 
     public String descTable(String tableName) throws DBException {
-        Table table = getTable(tableName);
+        TableSchema table = getTable(tableName);
         if (table == null) {
             throw new NoSuchTable();
         }
@@ -195,7 +195,7 @@ public class DBManager {
         builder.append("-----------------------------------------------------------------\n");
         builder.append(String.format("table_name [%s]\n", table.getName()));
         builder.append(String.format("%-28s %-14s %-14s %s\n", "column_name", "type", "null", "key"));
-        for (Column column : table.getOrderedColumns()) {
+        for (ColumnSchema column : table.getOrderedColumns()) {
             final DataType dataType = column.getDataType();
             String formattedType = dataType.baseType.name().toLowerCase();
             if (dataType.baseType == BaseType.CHAR) {
@@ -258,7 +258,7 @@ public class DBManager {
         Cursor cursor = null;
         try {
             cursor = database.openCursor(null, null);
-            DatabaseEntry key = new DatabaseEntry(Table.getKey(tableName).getBytes("UTF-8"));
+            DatabaseEntry key = new DatabaseEntry(TableSchema.getKey(tableName).getBytes("UTF-8"));
 
             if (cursor.getSearchKey(key, null, LockMode.DEFAULT) == OperationStatus.NOTFOUND) {
                 return false;
@@ -277,19 +277,19 @@ public class DBManager {
     }
 
     // Construct complete table from database. If the table does not exists, returns null.
-    private Table getTable(String tableName) {
+    private TableSchema getTable(String tableName) {
         if (!tableExists(tableName)) {
             return null;
         }
 
         // construct table model
-        Table table = new Table(tableName);
+        TableSchema table = new TableSchema(tableName);
 
         // read table reference data
         Cursor cursor = null;
         try {
             cursor = database.openCursor(null, null);
-            DatabaseEntry key = new DatabaseEntry(Table.getKey(tableName).getBytes("UTF-8"));
+            DatabaseEntry key = new DatabaseEntry(TableSchema.getKey(tableName).getBytes("UTF-8"));
             DatabaseEntry value = new DatabaseEntry();
 
             if (cursor.getSearchKey(key, value, LockMode.DEFAULT) == OperationStatus.NOTFOUND) {
@@ -312,7 +312,7 @@ public class DBManager {
         // read column data of the table
         try {
             cursor = database.openCursor(null, null);
-            DatabaseEntry key = new DatabaseEntry(Column.getKey(tableName).getBytes("UTF-8"));
+            DatabaseEntry key = new DatabaseEntry(ColumnSchema.getKey(tableName).getBytes("UTF-8"));
             DatabaseEntry value = new DatabaseEntry();
 
             if (cursor.getSearchKey(key, value, LockMode.DEFAULT) == OperationStatus.NOTFOUND) {
@@ -320,7 +320,7 @@ public class DBManager {
             }
 
             do {
-                Column column = Column.deserialize(new String(value.getData(), "UTF-8"));
+                ColumnSchema column = ColumnSchema.deserialize(new String(value.getData(), "UTF-8"));
                 if (column == null) {
                     return null;
                 }
@@ -339,7 +339,7 @@ public class DBManager {
     }
 
     // save table to database without any check. if the table already exists, it is overwrited.
-    private void saveTable(Table table) {
+    private void saveTable(TableSchema table) {
         deleteTable(table.getName());
 
         // save table model to database
@@ -359,7 +359,7 @@ public class DBManager {
             }
 
             // save columns
-            for (Column column : table.columns.values()) {
+            for (ColumnSchema column : table.columns.values()) {
                 DatabaseEntry columnKey = new DatabaseEntry(column.getKey().getBytes("UTF-8"));
                 DatabaseEntry columnValue = new DatabaseEntry(column.serialize().getBytes("UTF-8"));
                 cursor.put(columnKey, columnValue);
@@ -389,8 +389,8 @@ public class DBManager {
     // delete all tableName related key-values. returns true if any key-value is deleted.
     private boolean deleteTable(String tableName) {
         boolean deleted = false;
-        deleted |= deleteKeys(Table.getKey(tableName));
-        deleted |= deleteKeys(Column.getKey(tableName));
+        deleted |= deleteKeys(TableSchema.getKey(tableName));
+        deleted |= deleteKeys(ColumnSchema.getKey(tableName));
         return deleted;
     }
 
