@@ -63,6 +63,11 @@ public class DBManager {
             table.addColumn(column);
         }
 
+        // check primary key definition statement is duplicated
+        if (query.getPrimaryKeyAddCount() > 1) {
+            throw new DuplicatePrimaryKeyDefError();
+        }
+
         // register primary keys
         for (String pkColumnName : query.getPrimaryKeyColumns()) {
             table.registerPrimaryKey(pkColumnName);

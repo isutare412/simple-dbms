@@ -27,21 +27,27 @@ public class CreateQuery {
     private String tableName;
     private ArrayList<Column> columns;
     private ArrayList<String> primaryKeyColumns;
+    private int primaryKeyAddCount;
     private ArrayList<ReferenceConstraint> references;
 
     public CreateQuery(String tableName) {
         this.tableName = tableName;
         columns = new ArrayList<Column>();
         primaryKeyColumns = new ArrayList<String>();
+        primaryKeyAddCount = 0;
         references = new ArrayList<ReferenceConstraint>();
     }
 
     public String getTableName() { return tableName; }
     public ArrayList<Column> getColumns() { return columns; }
     public ArrayList<String> getPrimaryKeyColumns() { return primaryKeyColumns; }
+    public int getPrimaryKeyAddCount() { return primaryKeyAddCount; }
     public ArrayList<ReferenceConstraint> getReferences() { return references; }
 
     public void addColumn(Column column) { columns.add(column); }
-    public void addPrimaryKeyColumn(String columnName) { primaryKeyColumns.add(columnName); }
+    public void addPrimaryKeyColumn(String columnName) {
+        primaryKeyColumns.add(columnName);
+        primaryKeyAddCount++;
+    }
     public void addReference(ReferenceConstraint reference) { references.add(reference); }
 }
