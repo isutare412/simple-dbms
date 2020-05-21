@@ -1,8 +1,8 @@
-package kr.ac.snu.ids.PRJ1_2_2013_12295.query;
+package kr.ac.snu.ids.PRJ1_3_2013_12295.query;
 
 import java.util.ArrayList;
 
-import kr.ac.snu.ids.PRJ1_2_2013_12295.database.*;
+import kr.ac.snu.ids.PRJ1_3_2013_12295.database.*;
 
 public class CreateQuery {
     public class ReferenceConstraint {

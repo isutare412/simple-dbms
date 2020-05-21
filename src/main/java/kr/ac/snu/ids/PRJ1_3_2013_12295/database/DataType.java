@@ -1,4 +1,4 @@
-package kr.ac.snu.ids.PRJ1_2_2013_12295.database;
+package kr.ac.snu.ids.PRJ1_3_2013_12295.database;
 
 public enum DataType {
     INT,

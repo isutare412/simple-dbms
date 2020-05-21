@@ -1,4 +1,4 @@
-package kr.ac.snu.ids.PRJ1_2_2013_12295.database;
+package kr.ac.snu.ids.PRJ1_3_2013_12295.database;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -17,7 +17,7 @@ import com.sleepycat.je.Transaction;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 
-import kr.ac.snu.ids.PRJ1_2_2013_12295.query.*;
+import kr.ac.snu.ids.PRJ1_3_2013_12295.query.*;
 
 public class DBManager {
     private Environment environment;

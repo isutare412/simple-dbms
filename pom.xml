@@ -60,8 +60,8 @@
           <configuration>
             <archive>
               <manifest>
-                <packageName>kr.ac.snu.ids.PRJ1_2_2013_12295</packageName>
-                <mainClass>kr.ac.snu.ids.PRJ1_2_2013_12295.SimpleDBMSParser</mainClass>
+                <packageName>kr.ac.snu.ids.PRJ1_3_2013_12295</packageName>
+                <mainClass>kr.ac.snu.ids.PRJ1_3_2013_12295.SimpleDBMSParser</mainClass>
                 <addClasspath>true</addClasspath>
                 <classpathPrefix>lib/</classpathPrefix>
                 <addExtensions>true</addExtensions>
@@ -110,7 +110,7 @@
               <archive>
                 <manifest>
                   <addClasspath>true</addClasspath>
-                  <mainClass>kr.ac.snu.ids.PRJ1_2_2013_12295.SimpleDBMSParser</mainClass>
+                  <mainClass>kr.ac.snu.ids.PRJ1_3_2013_12295.SimpleDBMSParser</mainClass>
                 </manifest>
               </archive>
               <descriptorRefs>
