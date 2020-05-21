@@ -392,10 +392,11 @@ names.add(name);
 }
 
   static final public void dataType(Column column) throws ParseException {Token charLength;
+  DataType type = new DataType();
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case INT:{
       jj_consume_token(INT);
-column.setDataType(DataType.INT);
+type.baseType = BaseType.INT;
       break;
       }
     case CHAR:{
@@ -403,13 +404,13 @@ column.setDataType(DataType.INT);
       jj_consume_token(LEFT_PAREN);
       charLength = jj_consume_token(INT_VALUE);
       jj_consume_token(RIGHT_PAREN);
-column.setDataType(DataType.CHAR);
-      column.setCharLength(Integer.parseInt(charLength.toString()));
+type.baseType = BaseType.CHAR;
+        type.charLength = Integer.parseInt(charLength.toString());
       break;
       }
     case DATE:{
       jj_consume_token(DATE);
-column.setDataType(DataType.DATE);
+type.baseType = BaseType.DATE;
       break;
       }
     default:
@@ -417,6 +418,7 @@ column.setDataType(DataType.DATE);
       jj_consume_token(-1);
       throw new ParseException();
     }
+column.setDataType(type);
 }
 
   static final public String tableName() throws ParseException {Token name;

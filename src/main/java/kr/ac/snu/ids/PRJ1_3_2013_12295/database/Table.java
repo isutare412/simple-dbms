@@ -96,7 +96,7 @@ public class Table {
         }
 
         // check char length
-        if (column.getDataType() == DataType.CHAR && column.getCharLength() <= 0) {
+        if (column.getDataType().baseType == BaseType.CHAR && column.getDataType().charLength <= 0) {
             throw new CharLengthError();
         }
 

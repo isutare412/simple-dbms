@@ -457,11 +457,13 @@ ArrayList<String> columnNameList() :
 void dataType(Column column) :
 {
   Token charLength;
+  DataType type = new DataType();
 }
 {
+  (
   < INT >
   {
-    column.setDataType(DataType.INT);
+      type.baseType = BaseType.INT;
   }
 | (
     < CHAR >
@@ -469,14 +471,18 @@ void dataType(Column column) :
     charLength = < INT_VALUE >
     < RIGHT_PAREN >
     {
-      column.setDataType(DataType.CHAR);
-      column.setCharLength(Integer.parseInt(charLength.toString()));
+        type.baseType = BaseType.CHAR;
+        type.charLength = Integer.parseInt(charLength.toString());
     }
   )
 | < DATE >
   {
-    column.setDataType(DataType.DATE);
+      type.baseType = BaseType.DATE;
   }
+  )
+  {
+    column.setDataType(type);
+}
 }
 
 String tableName() :
