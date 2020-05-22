@@ -54,7 +54,7 @@ public class ColumnSchema {
         builder.append(',');
         builder.append(String.valueOf(primaryKey));
         builder.append(',');
-        builder.append(reference == null ? "null" : reference.serialize());
+        builder.append(reference == null ? "NULL" : reference.serialize());
         return builder.toString();
     }
 

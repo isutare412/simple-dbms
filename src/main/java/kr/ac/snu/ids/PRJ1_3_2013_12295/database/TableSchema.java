@@ -52,7 +52,7 @@ public class TableSchema {
     public String serialize() {
         // format: ( referencedBy, ... )
         if (referencedByTableNames.size() <= 0) {
-            return "null";
+            return "NULL";
         }
 
         StringBuilder builder = new StringBuilder();

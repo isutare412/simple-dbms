@@ -680,21 +680,21 @@ DataValue comparableValue():
       DataType type = new DataType();
       type.baseType = BaseType.INT;
       dataValue = new DataValue(type);
-      dataValue.parseData(rawValue.toString());
+      dataValue.deserialize(rawValue.toString());
     }
   | rawValue = < CHAR_STRING >
     {
       DataType type = new DataType();
       type.baseType = BaseType.CHAR;
       dataValue = new DataValue(type);
-      dataValue.parseData(rawValue.toString());
+      dataValue.deserialize(rawValue.toString());
     }
   | rawValue = < DATE_VALUE >
     {
       DataType type = new DataType();
       type.baseType = BaseType.DATE;
       dataValue = new DataValue(type);
-      dataValue.parseData(rawValue.toString());
+      dataValue.deserialize(rawValue.toString());
     }
   )
   {

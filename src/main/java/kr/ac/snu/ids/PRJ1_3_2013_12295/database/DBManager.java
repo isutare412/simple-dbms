@@ -227,6 +227,13 @@ public class DBManager {
     }
 
     public String insert(InsertQuery query) throws DBException {
+        //final String tableName = query.getTableName();
+        //final TableSchema schema = getTable(tableName);
+        //if (schema == null) {
+        //    throw new NoSuchTable();
+        //}
+
+        //final TableInstance tableInstance = getInstance(schema);
 
         System.out.println(query.getTableName());
         for (String name : query.getColumnNames()) {
@@ -336,6 +343,36 @@ public class DBManager {
             }
         }
         return table;
+    }
+
+    private TableInstance getInstance(TableSchema schema) {
+        // construct table instance model from TableSchema
+        TableInstance tableInstance = new TableInstance(schema);
+
+        // read instance data of the table
+        Cursor cursor = null;
+        try {
+            cursor = database.openCursor(null, null);
+            DatabaseEntry key = new DatabaseEntry(TableRow.getKey(schema.getName()).getBytes("UTF-8"));
+            DatabaseEntry value = new DatabaseEntry();
+
+            if (cursor.getSearchKey(key, value, LockMode.DEFAULT) == OperationStatus.NOTFOUND) {
+                return null;
+            }
+
+            do {
+                tableInstance.readRow(new String(value.getData(), "UTF-8"));
+            } while (cursor.getNextDup(key, value, LockMode.DEFAULT) == OperationStatus.SUCCESS);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+                cursor = null;
+            }
+        }
+        return tableInstance;
     }
 
     // save table to database without any check. if the table already exists, it is overwrited.

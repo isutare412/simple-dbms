@@ -681,7 +681,7 @@ void selectQuery() throws ParseException {
 DataType type = new DataType();
       type.baseType = BaseType.INT;
       dataValue = new DataValue(type);
-      dataValue.parseData(rawValue.toString());
+      dataValue.deserialize(rawValue.toString());
       break;
       }
     case CHAR_STRING:{
@@ -689,7 +689,7 @@ DataType type = new DataType();
 DataType type = new DataType();
       type.baseType = BaseType.CHAR;
       dataValue = new DataValue(type);
-      dataValue.parseData(rawValue.toString());
+      dataValue.deserialize(rawValue.toString());
       break;
       }
     case DATE_VALUE:{
@@ -697,7 +697,7 @@ DataType type = new DataType();
 DataType type = new DataType();
       type.baseType = BaseType.DATE;
       dataValue = new DataValue(type);
-      dataValue.parseData(rawValue.toString());
+      dataValue.deserialize(rawValue.toString());
       break;
       }
     default:

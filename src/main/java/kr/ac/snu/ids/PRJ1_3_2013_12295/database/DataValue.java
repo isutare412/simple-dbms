@@ -11,7 +11,9 @@ public class DataValue {
     private DateValue dateValue;
     private boolean isNull;
 
-    static Pattern datePattern = Pattern.compile("^(\\d\\d\\d\\d)-(\\d\\d)-(\\d\\d)$");
+    public static final char charWrapper = '\'';
+    public static final String nullToken = "NULL";
+    private static final Pattern datePattern = Pattern.compile("^(\\d\\d\\d\\d)-(\\d\\d)-(\\d\\d)$");
 
     public DataValue() {
         isNull = true;
@@ -22,7 +24,36 @@ public class DataValue {
         isNull = false;
     }
 
-    public void parseData(String rawData) {
+    public String serialize() {
+        String str = "";
+        if (isNull) {
+            return DataValue.nullToken;
+        }
+
+        switch (type.baseType) {
+            case INT:
+                str = String.valueOf(intValue);
+                break;
+            case CHAR:
+                str = String.format("%c%s%c",
+                    DataValue.charWrapper, charValue, DataValue.charWrapper);
+                break;
+            case DATE:
+                str = dateValue.toString();
+                break;
+            default:
+                break;
+        }
+        return str;
+    }
+
+    public void deserialize(String rawData) {
+        if (rawData.equals(DataValue.nullToken)) {
+            isNull = true;
+            return;
+        }
+        isNull = false;
+
         try {
             switch (type.baseType) {
                 case INT:
@@ -47,27 +78,6 @@ public class DataValue {
             System.err.println(e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    public String serialize() {
-        String str = "";
-        if (isNull) {
-            str = "NULL";
-        }
-
-        switch (type.baseType) {
-            case INT:
-                str = String.valueOf(intValue);
-                break;
-            case CHAR:
-                str = charValue;
-                break;
-            case DATE:
-                str = dateValue.toString();
-            default:
-                break;
-        }
-        return str;
     }
 }
 
