@@ -2,6 +2,7 @@ package kr.ac.snu.ids.PRJ1_3_2013_12295.database;
 
 import java.lang.StringBuilder;
 import java.util.regex.Pattern;
+import java.util.Objects;
 import java.util.regex.Matcher;
 
 public class ColumnSchema {
@@ -20,12 +21,24 @@ public class ColumnSchema {
         type = new DataType();
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || this.getClass() != obj.getClass()) {
+            return false;
+        }
+        final ColumnSchema other = (ColumnSchema)obj;
+        return tableName.equals(other.tableName) && name.equals(other.name);
+    }
+
+    @Override
+    public int hashCode() { return Objects.hash(tableName, name); }
+
     public int getOrder() { return order; }
     public String getName() { return name; }
     public String getTableName() { return tableName; }
     public DataType getDataType() { return type; }
-    public boolean getNullable() { return nullable; }
-    public boolean getPrimaryKey() { return primaryKey; }
+    public boolean isNullable() { return nullable; }
+    public boolean isPrimary() { return primaryKey; }
     public Reference getReference() { return reference; }
     public void setOrder(int order) { this.order = order; }
     public void setTableName(String name) { this.tableName = name; }
@@ -84,6 +97,7 @@ class Reference {
     }
 
     public String getTableName() { return tableName; }
+    public String getColumnName() { return columnName; }
 
     public String serialize() {
         // format: ( tableName - columnName )

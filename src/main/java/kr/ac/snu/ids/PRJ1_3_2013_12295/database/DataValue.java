@@ -24,6 +24,37 @@ public class DataValue {
         isNull = false;
     }
 
+    public LogicValue isSame(DataValue other) {
+        if (this.isNull || other.isNull) {
+            return LogicValue.UNKNOWN;
+        }
+
+        if (!type.equals(other.type)) {
+            return LogicValue.FALSE;
+        }
+
+        switch (type.baseType) {
+            case INT:
+                return intValue == other.intValue ? LogicValue.TRUE : LogicValue.FALSE;
+            case CHAR:
+                return charValue.equals(other.charValue) ? LogicValue.TRUE : LogicValue.FALSE;
+            case DATE:
+                return dateValue.equals(other.dateValue) ? LogicValue.TRUE : LogicValue.FALSE;
+            default:
+                return LogicValue.FALSE;
+        }
+    }
+
+    public DataType getDataType() { return type; }
+    public boolean isNull() { return isNull; }
+
+    public void setCharLength(int length) {
+        type.charLength = length;
+        if (charValue.length() > length) {
+            charValue = charValue.substring(0, length);
+        }
+    }
+
     public String serialize() {
         String str = "";
         if (isNull) {
@@ -90,6 +121,15 @@ class DateValue {
         this.year = year;
         this.month = month;
         this.day = day;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || this.getClass() != obj.getClass()) {
+            return false;
+        }
+        final DateValue other = (DateValue)obj;
+        return year == other.year && month == other.month && day == other.day;
     }
 
     public String toString() {

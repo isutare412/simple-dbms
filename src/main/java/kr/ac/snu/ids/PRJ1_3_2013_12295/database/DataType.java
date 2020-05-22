@@ -11,7 +11,7 @@ public class DataType {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !DataType.class.isAssignableFrom(obj.getClass())) {
+        if (obj == null || this.getClass() != obj.getClass()) {
             return false;
         }
         final DataType other = (DataType)obj;

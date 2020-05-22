@@ -3,7 +3,9 @@ package kr.ac.snu.ids.PRJ1_3_2013_12295.database;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.lang.StringBuilder;
 
 import com.sleepycat.je.Database;
@@ -204,7 +206,7 @@ public class DBManager {
 
             // format keys
             String formattedKey = "";
-            boolean isPrimaryKey = column.getPrimaryKey();
+            boolean isPrimaryKey = column.isPrimary();
             boolean isForeignKey = column.getReference() != null;
             if (isPrimaryKey && isForeignKey) {
                 formattedKey = "PRI/FOR";
@@ -218,7 +220,7 @@ public class DBManager {
                 String.format("%-28s %-14s %-14s %s\n",
                 column.getName(),
                 formattedType,
-                column.getNullable() ? "Y" : "N",
+                column.isNullable() ? "Y" : "N",
                 formattedKey
             ));
         }
@@ -227,21 +229,132 @@ public class DBManager {
     }
 
     public String insert(InsertQuery query) throws DBException {
-        //final String tableName = query.getTableName();
-        //final TableSchema schema = getTable(tableName);
-        //if (schema == null) {
-        //    throw new NoSuchTable();
-        //}
+        final String tableName = query.getTableName();
+        final TableSchema tableSchema = getTable(tableName);
 
-        //final TableInstance tableInstance = getInstance(schema);
+        // check the table exists
+        if (tableSchema == null) {
+            throw new NoSuchTable();
+        }
 
-        System.out.println(query.getTableName());
-        for (String name : query.getColumnNames()) {
-            System.out.println(name);
+        ArrayList<String> columnNames = query.getColumnNames();
+        ArrayList<DataValue> columnValues = query.getColumnValues();
+
+        // check column count
+        if (columnNames == null || columnNames.size() == 0) {
+            // check number of column values
+            if (tableSchema.columns.size() != columnValues.size()) {
+                throw new InsertTypeMismatchError();
+            }
+        } else {
+            // check number of column values with number of column names
+            if (columnValues.size() != columnNames.size()) {
+                throw new InsertTypeMismatchError();
+            }
+
+            // check size of columns
+            if (columnValues.size() > tableSchema.columns.size()) {
+                throw new InsertTypeMismatchError();
+            }
+
+            // check for column existence for each given column names
+            for (String columnName : columnNames) {
+                if (!tableSchema.columns.containsKey(columnName)) {
+                    throw new InsertColumnExistenceError(columnName);
+                }
+            }
         }
-        for (DataValue value : query.getColumnValues()) {
-            System.out.println(value.serialize());
+
+        // rearrange columnValues by table schema order
+        if (columnNames != null && columnNames.size() != 0) {
+            columnValues = new ArrayList<>();
+            for (ColumnSchema columnSchema : tableSchema.getOrderedColumns()) {
+                // dataValue is null if not given by InsertQuery
+                int index = columnNames.indexOf(columnSchema.getName());
+                DataValue dataValue =
+                    index == -1 ?
+                    new DataValue() :
+                    columnValues.get(index);
+
+                columnValues.add(dataValue);
+            }
         }
+
+        // construct new table row model
+        TableRow newRow = new TableRow(tableSchema);
+
+        // check type of each column values
+        ArrayList<ColumnSchema> columnSchemas = tableSchema.getOrderedColumns();
+        for (int i = 0; i < columnSchemas.size(); i++) {
+            ColumnSchema columnSchema = columnSchemas.get(i);
+            DataValue dataValue = columnValues.get(i);
+
+            // check each column type with value type
+            if (!dataValue.isNull() &&
+                    !columnSchema.getDataType().equals(dataValue.getDataType())) {
+                throw new InsertTypeMismatchError();
+            }
+
+            // check if the column is nullable
+            if (!columnSchema.isNullable() && dataValue.isNull()) {
+                throw new InsertColumnNonNullableError(columnSchema.getName());
+            }
+
+            // limit charater length of value by type
+            if (dataValue.getDataType().baseType == BaseType.CHAR) {
+                dataValue.setCharLength(columnSchema.getDataType().charLength);
+            }
+
+            // add DataValue into new TableRow
+            newRow.addValue(dataValue);
+        }
+
+        // read table instance from database
+        final TableInstance tableInstance = getInstance(tableSchema);
+
+        // check primary key contraints
+        if (tableInstance.contains(newRow)) {
+            throw new InsertDuplicatePrimaryKeyError();
+        }
+
+        // check referential contraints
+        for (String targetTableName : tableSchema.getReferencing()) {
+            HashMap<ColumnSchema, DataValue> foreignKey = newRow.getForeignKey(targetTableName);
+            if (foreignKey == null || foreignKey.size() == 0) {
+                continue;
+            }
+
+            // do not need to check referential contraints for null values
+            boolean containNull = false;
+            for (DataValue foreignKeyValue : foreignKey.values()) {
+                if (foreignKeyValue.isNull()) {
+                    containNull = true;
+                    break;
+                }
+            }
+            if (containNull) {
+                continue;
+            }
+
+            // build reference data for checking
+            TableSchema targetSchema = getTable(targetTableName);
+            ArrayList<String> referColumnNames = new ArrayList<>();
+            ArrayList<DataValue> referColumnValues = new ArrayList<>();
+            for (Entry<ColumnSchema, DataValue> entry : foreignKey.entrySet()) {
+                String targetColumnName = entry.getKey().getReference().getColumnName();
+                ColumnSchema columnSchema = targetSchema.columns.get(targetColumnName);
+                referColumnNames.add(columnSchema.getName());
+                referColumnValues.add(entry.getValue());
+            }
+
+            // check the value of foreign key exists in the target table instance
+            TableInstance targetInstance = getInstance(targetSchema);
+            if (!targetInstance.foreignKeyExists(referColumnNames, referColumnValues)) {
+                throw new InsertReferentialIntegrityError();
+            }
+        }
+
+        // now write new row to the database
 
         return "The row is inserted";
     }
@@ -345,7 +458,12 @@ public class DBManager {
         return table;
     }
 
+    // read table instance from database
     private TableInstance getInstance(TableSchema schema) {
+        if (schema == null) {
+            return null;
+        }
+
         // construct table instance model from TableSchema
         TableInstance tableInstance = new TableInstance(schema);
 
@@ -357,7 +475,7 @@ public class DBManager {
             DatabaseEntry value = new DatabaseEntry();
 
             if (cursor.getSearchKey(key, value, LockMode.DEFAULT) == OperationStatus.NOTFOUND) {
-                return null;
+                return tableInstance;
             }
 
             do {

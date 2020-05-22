@@ -22,6 +22,15 @@ public class TableSchema {
         this.referencedByTableNames = new HashSet<String>();
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || this.getClass() != obj.getClass()) {
+            return false;
+        }
+        final TableSchema other = (TableSchema)obj;
+        return name.equals(other.name);
+    }
+
     public String getName() { return name; }
     public HashSet<String> getReferencedBy() { return referencedByTableNames; }
     public HashSet<String> getReferencing() {
@@ -34,13 +43,12 @@ public class TableSchema {
             }
             tables.add(reference.getTableName());
         }
-
         return tables;
     }
     public int getPrimaryKeyCount() {
         int count = 0;
         for (ColumnSchema column : columns.values()) {
-            if (column.getPrimaryKey() == true) ++count;
+            if (column.isPrimary() == true) ++count;
         }
         return count;
     }
@@ -113,7 +121,7 @@ public class TableSchema {
         }
 
         // check if primary key definition is duplicated
-        if (column.getPrimaryKey() == true) {
+        if (column.isPrimary() == true) {
             throw new DuplicatePrimaryKeyDefError();
         }
 
@@ -152,7 +160,7 @@ public class TableSchema {
             }
 
             // check referenced column is primary key
-            if (targetColumn.getPrimaryKey() == false) {
+            if (targetColumn.isPrimary() == false) {
                 throw new ReferenceNonPrimaryKeyError();
             }
 
