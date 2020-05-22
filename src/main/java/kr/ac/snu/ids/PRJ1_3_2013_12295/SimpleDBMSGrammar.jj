@@ -403,6 +403,7 @@ void primaryKeyConstraint(CreateQuery createQuery) :
     for (String columnName : primaryKeyNames) {
       createQuery.addPrimaryKeyColumn(columnName);
     }
+    createQuery.increasePrimaryKeyAddCount();
   }
 }
 

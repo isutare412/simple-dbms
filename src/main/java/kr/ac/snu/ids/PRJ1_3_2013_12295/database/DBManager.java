@@ -267,17 +267,14 @@ public class DBManager {
 
         // rearrange columnValues by table schema order
         if (columnNames != null && columnNames.size() != 0) {
-            columnValues = new ArrayList<>();
+            ArrayList<DataValue> reorderedValues = new ArrayList<>();
             for (ColumnSchema columnSchema : tableSchema.getOrderedColumns()) {
                 // dataValue is null if not given by InsertQuery
                 int index = columnNames.indexOf(columnSchema.getName());
-                DataValue dataValue =
-                    index == -1 ?
-                    new DataValue() :
-                    columnValues.get(index);
-
-                columnValues.add(dataValue);
+                DataValue dataValue = index == -1 ? new DataValue() : columnValues.get(index);
+                reorderedValues.add(dataValue);
             }
+            columnValues = reorderedValues;
         }
 
         // construct new table row model
@@ -289,6 +286,11 @@ public class DBManager {
             ColumnSchema columnSchema = columnSchemas.get(i);
             DataValue dataValue = columnValues.get(i);
 
+            // limit charater length of value by type
+            if (!dataValue.isNull() && dataValue.getDataType().baseType == BaseType.CHAR) {
+                dataValue.setCharLength(columnSchema.getDataType().charLength);
+            }
+
             // check each column type with value type
             if (!dataValue.isNull() &&
                     !columnSchema.getDataType().equals(dataValue.getDataType())) {
@@ -298,11 +300,6 @@ public class DBManager {
             // check if the column is nullable
             if (!columnSchema.isNullable() && dataValue.isNull()) {
                 throw new InsertColumnNonNullableError(columnSchema.getName());
-            }
-
-            // limit charater length of value by type
-            if (dataValue.getDataType().baseType == BaseType.CHAR) {
-                dataValue.setCharLength(columnSchema.getDataType().charLength);
             }
 
             // add DataValue into new TableRow
@@ -324,15 +321,12 @@ public class DBManager {
                 continue;
             }
 
-            // do not need to check referential contraints for null values
-            boolean containNull = false;
+            // do not need to check referential contraints for all null values
+            boolean allNull = true;
             for (DataValue foreignKeyValue : foreignKey.values()) {
-                if (foreignKeyValue.isNull()) {
-                    containNull = true;
-                    break;
-                }
+                allNull &= foreignKeyValue.isNull();
             }
-            if (containNull) {
+            if (allNull) {
                 continue;
             }
 
@@ -355,6 +349,7 @@ public class DBManager {
         }
 
         // now write new row to the database
+        saveRow(newRow);
 
         return "The row is inserted";
     }
@@ -537,6 +532,29 @@ public class DBManager {
             if (txn != null) {
                 txn.abort();
                 txn = null;
+            }
+        }
+    }
+
+    // save TableRow into database without any check.
+    private void saveRow(TableRow tableRow) {
+        // save columns
+        Cursor cursor = null;
+        try {
+            cursor = database.openCursor(null, null);
+            DatabaseEntry rowKey = new DatabaseEntry(tableRow.getKey().getBytes("UTF-8"));
+            DatabaseEntry rowValue = new DatabaseEntry(tableRow.serialize().getBytes("UTF-8"));
+            cursor.put(rowKey, rowValue);
+
+            cursor.close();
+            cursor = null;
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+                cursor = null;
             }
         }
     }

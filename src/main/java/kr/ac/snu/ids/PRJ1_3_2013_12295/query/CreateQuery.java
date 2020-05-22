@@ -50,7 +50,7 @@ public class CreateQuery {
     }
     public void addPrimaryKeyColumn(String columnName) {
         primaryKeyColumns.add(columnName);
-        primaryKeyAddCount++;
     }
+    public void increasePrimaryKeyAddCount() { primaryKeyAddCount++; }
     public void addReference(ReferenceConstraint reference) { references.add(reference); }
 }

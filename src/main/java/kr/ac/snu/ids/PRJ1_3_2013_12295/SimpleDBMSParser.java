@@ -346,6 +346,7 @@ createQuery.addColumn(column);
 for (String columnName : primaryKeyNames) {
       createQuery.addPrimaryKeyColumn(columnName);
     }
+    createQuery.increasePrimaryKeyAddCount();
 }
 
   static final public void referentialConstraint(CreateQuery createQuery) throws ParseException {ArrayList<String> referencings;
