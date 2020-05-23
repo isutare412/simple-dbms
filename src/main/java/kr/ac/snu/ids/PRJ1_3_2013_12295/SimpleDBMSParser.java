@@ -17,6 +17,7 @@ import com.sleepycat.je.EnvironmentConfig;
 
 import kr.ac.snu.ids.PRJ1_3_2013_12295.database.*;
 import kr.ac.snu.ids.PRJ1_3_2013_12295.query.*;
+import kr.ac.snu.ids.PRJ1_3_2013_12295.exception.*;
 
 public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   //constants to distinguish query and print outputs.

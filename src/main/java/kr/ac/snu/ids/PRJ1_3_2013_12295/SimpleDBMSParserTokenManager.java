@@ -15,6 +15,7 @@ import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 import kr.ac.snu.ids.PRJ1_3_2013_12295.database.*;
 import kr.ac.snu.ids.PRJ1_3_2013_12295.query.*;
+import kr.ac.snu.ids.PRJ1_3_2013_12295.exception.*;
 
 /** Token Manager. */
 @SuppressWarnings ("unused")

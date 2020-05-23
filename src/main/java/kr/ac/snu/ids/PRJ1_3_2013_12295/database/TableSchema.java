@@ -8,6 +8,8 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.lang.StringBuilder;
 
+import kr.ac.snu.ids.PRJ1_3_2013_12295.exception.*;
+
 public class TableSchema {
     private String name;
     private HashSet<String> referencedByTableNames;
