@@ -23,6 +23,7 @@ import com.sleepycat.je.EnvironmentConfig;
 import kr.ac.snu.ids.PRJ1_3_2013_12295.database.*;
 import kr.ac.snu.ids.PRJ1_3_2013_12295.query.*;
 import kr.ac.snu.ids.PRJ1_3_2013_12295.exception.*;
+import kr.ac.snu.ids.PRJ1_3_2013_12295.expression.*;
 
 public class SimpleDBMSParser
 {
@@ -587,88 +588,170 @@ void referedTable():
   )?
 }
 
-void whereClause() :
-{}
+Evaluator whereClause() :
+{
+  Evaluator evaluator;
+}
 {
   < WHERE >
-  booleanValueExpression()
+  evaluator = booleanValueExpression()
+  {
+    return evaluator;
+  }
 }
 
-void booleanValueExpression() :
-{}
+Evaluator booleanValueExpression() :
 {
-  booleanTerm()
+  ArrayList<Evaluator> evaluators = new ArrayList<Evaluator>();
+  Evaluator evaluator;
+}
+{
+  evaluator = booleanTerm()
+  {
+    evaluators.add(evaluator);
+  }
   (
     < OR >
-    booleanTerm()
+    evaluator = booleanTerm()
+    {
+      evaluators.add(evaluator);
+    }
   )*
+  {
+    return new BooleanExpression(evaluators);
+  }
 }
 
-void booleanTerm():
-{}
+Evaluator booleanTerm():
 {
-  booleanFactor()
+  ArrayList<Evaluator> evaluators = new ArrayList<Evaluator>();
+  Evaluator evaluator;
+}
+{
+  evaluator = booleanFactor()
+  {
+    evaluators.add(evaluator);
+  }
   (
     < AND >
-    booleanFactor()
+    evaluator = booleanFactor()
+    {
+      evaluators.add(evaluator);
+    }
   )*
+  {
+    return new BooleanTerm(evaluators);
+  }
 }
 
-void booleanFactor():
-{}
+Evaluator booleanFactor():
+{
+  boolean isNot = false;
+  Evaluator evaluator;
+}
 {
   (
     < NOT >
+    {
+      isNot = true;
+    }
   )?
-  booleanTest()
+  evaluator = booleanTest()
+  {
+    return new BooleanFactor(evaluator, isNot);
+  }
 }
 
-void booleanTest():
-{}
+Evaluator booleanTest():
 {
-  predicate()
-| parenthesizedBooleanExpression()
+  Evaluator evaluator;
+}
+{
+  (
+    evaluator = predicate()
+  | evaluator = parenthesizedBooleanExpression()
+  )
+  {
+    return evaluator;
+  }
 }
 
-void parenthesizedBooleanExpression():
-{}
+Evaluator parenthesizedBooleanExpression():
+{
+  Evaluator evaluator;
+}
 {
   < LEFT_PAREN >
-  booleanValueExpression()
+  evaluator = booleanValueExpression()
   < RIGHT_PAREN >
+  {
+    return evaluator;
+  }
 }
 
-void predicate():
-{}
+Evaluator predicate():
+{
+  Evaluator evaluator;
+}
 {
   //comparisonPredicate & nullPredicate can both start with tableName()< PERIOD >columnName()
   //so need to lookahead 4
   LOOKAHEAD(4)
-  comparisonPredicate()
-| nullPredicate() 
+  (
+    evaluator = comparisonPredicate()
+  )
+| (
+    evaluator = nullPredicate()
+  ) 
+  {
+    return evaluator;
+  }
 }
 
-void comparisonPredicate():
-{}
+Evaluator comparisonPredicate():
 {
-  compOperand()
-  < COMP_OP >
-  compOperand() 
+  CompOperand leftOperand;
+  CompOperand rightOperand;
+  Token operator;
+}
+{
+  leftOperand = compOperand()
+  operator = < COMP_OP >
+  rightOperand = compOperand() 
+  {
+    return new ComparisonPredicate(leftOperand, rightOperand, operator.toString());
+  }
 }
 
-void compOperand():
-{}
+CompOperand compOperand():
 {
-  comparableValue()
+  DataValue dataValue;
+  CompOperand operand;
+  String tableName = null;
+  String columnName;
+}
+{
+  (
+    dataValue = comparableValue()
+    {
+      operand = new CompOperand(dataValue);
+    }
+  )
 | (
     (
       //tableName & columnName are same token <LEGAL_IDENITFIER >, so need to lookahead 2
       LOOKAHEAD(2)
-      tableName()
+      tableName = tableName()
       < PERIOD >
     )?
-    columnName()
+    columnName = columnName()
+    {
+      operand = new CompOperand(tableName, columnName);
+    }
  )
+ {
+   return operand;
+ }
 }
 
 DataValue comparableValue():
@@ -705,29 +788,44 @@ DataValue comparableValue():
   }
 }
 
-void nullPredicate():
-{}
+Evaluator nullPredicate():
+{
+  String tableName = null;
+  String columnName;
+  boolean isNull;
+}
 {
   (
     //tableName & columnName are same token <LEGAL_IDENITFIER >, so need to lookahead 2
     LOOKAHEAD(2)
-    tableName()
+    tableName = tableName()
     < PERIOD >
   )?
-  columnName()
-  nullOperation()
+  columnName = columnName()
+  isNull = nullOperation()
+  {
+    return new NullPredicate(tableName, columnName, isNull);
+  }
 }
 
-void nullOperation():
-{}
+boolean nullOperation():
+{
+  boolean isNull = true;
+}
 {
   < IS >
   (
     (
       < NOT >
+      {
+        isNull = false;
+      }
     )?
     < NULL >
   )
+  {
+    return isNull;
+  }
 }
 
 /// 2. for selectQuery

@@ -45,6 +45,20 @@ public class DataValue {
         }
     }
 
+    public int compareTo(DataValue other) {
+        switch (type.baseType) {
+            case INT:
+                return intValue - other.intValue;
+            case CHAR:
+                return charValue.compareTo(other.charValue);
+            case DATE:
+                return dateValue.compareTo(other.dateValue);
+            default:
+                new Exception().printStackTrace();
+                return 0;
+        }
+    }
+
     public DataType getDataType() { return type; }
     public boolean isNull() { return isNull; }
 
@@ -130,6 +144,18 @@ class DateValue {
         }
         final DateValue other = (DateValue)obj;
         return year == other.year && month == other.month && day == other.day;
+    }
+
+    public int compareTo(DateValue other) {
+        int yearResult = year - other.year;
+        if (yearResult != 0) {
+            return yearResult;
+        }
+        int monthResult = month - other.month;
+        if (monthResult != 0) {
+            return monthResult;
+        }
+        return day - other.day;
     }
 
     public String toString() {

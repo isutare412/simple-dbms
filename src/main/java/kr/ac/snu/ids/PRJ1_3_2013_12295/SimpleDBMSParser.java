@@ -18,6 +18,7 @@ import com.sleepycat.je.EnvironmentConfig;
 import kr.ac.snu.ids.PRJ1_3_2013_12295.database.*;
 import kr.ac.snu.ids.PRJ1_3_2013_12295.query.*;
 import kr.ac.snu.ids.PRJ1_3_2013_12295.exception.*;
+import kr.ac.snu.ids.PRJ1_3_2013_12295.expression.*;
 
 public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   //constants to distinguish query and print outputs.
@@ -548,13 +549,17 @@ void selectQuery() throws ParseException {
     }
 }
 
-  static final public void whereClause() throws ParseException {
+  static final public Evaluator whereClause() throws ParseException {Evaluator evaluator;
     jj_consume_token(WHERE);
-    booleanValueExpression();
+    evaluator = booleanValueExpression();
+{if ("" != null) return evaluator;}
+    throw new Error("Missing return statement in function");
 }
 
-  static final public void booleanValueExpression() throws ParseException {
-    booleanTerm();
+  static final public Evaluator booleanValueExpression() throws ParseException {ArrayList<Evaluator> evaluators = new ArrayList<Evaluator>();
+  Evaluator evaluator;
+    evaluator = booleanTerm();
+evaluators.add(evaluator);
     label_6:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -567,12 +572,17 @@ void selectQuery() throws ParseException {
         break label_6;
       }
       jj_consume_token(OR);
-      booleanTerm();
+      evaluator = booleanTerm();
+evaluators.add(evaluator);
     }
+{if ("" != null) return new BooleanExpression(evaluators);}
+    throw new Error("Missing return statement in function");
 }
 
-  static final public void booleanTerm() throws ParseException {
-    booleanFactor();
+  static final public Evaluator booleanTerm() throws ParseException {ArrayList<Evaluator> evaluators = new ArrayList<Evaluator>();
+  Evaluator evaluator;
+    evaluator = booleanFactor();
+evaluators.add(evaluator);
     label_7:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -585,34 +595,41 @@ void selectQuery() throws ParseException {
         break label_7;
       }
       jj_consume_token(AND);
-      booleanFactor();
+      evaluator = booleanFactor();
+evaluators.add(evaluator);
     }
+{if ("" != null) return new BooleanTerm(evaluators);}
+    throw new Error("Missing return statement in function");
 }
 
-  static final public void booleanFactor() throws ParseException {
+  static final public Evaluator booleanFactor() throws ParseException {boolean isNot = false;
+  Evaluator evaluator;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case NOT:{
       jj_consume_token(NOT);
+isNot = true;
       break;
       }
     default:
       jj_la1[19] = jj_gen;
       ;
     }
-    booleanTest();
+    evaluator = booleanTest();
+{if ("" != null) return new BooleanFactor(evaluator, isNot);}
+    throw new Error("Missing return statement in function");
 }
 
-  static final public void booleanTest() throws ParseException {
+  static final public Evaluator booleanTest() throws ParseException {Evaluator evaluator;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case INT_VALUE:
     case LEGAL_IDENTIFIER:
     case DATE_VALUE:
     case CHAR_STRING:{
-      predicate();
+      evaluator = predicate();
       break;
       }
     case LEFT_PAREN:{
-      parenthesizedBooleanExpression();
+      evaluator = parenthesizedBooleanExpression();
       break;
       }
     default:
@@ -620,21 +637,26 @@ void selectQuery() throws ParseException {
       jj_consume_token(-1);
       throw new ParseException();
     }
+{if ("" != null) return evaluator;}
+    throw new Error("Missing return statement in function");
 }
 
-  static final public void parenthesizedBooleanExpression() throws ParseException {
+  static final public Evaluator parenthesizedBooleanExpression() throws ParseException {Evaluator evaluator;
     jj_consume_token(LEFT_PAREN);
-    booleanValueExpression();
+    evaluator = booleanValueExpression();
     jj_consume_token(RIGHT_PAREN);
+{if ("" != null) return evaluator;}
+    throw new Error("Missing return statement in function");
 }
 
-  static final public void predicate() throws ParseException {
+  static final public Evaluator predicate() throws ParseException {Evaluator evaluator;
     if (jj_2_2(4)) {
-      comparisonPredicate();
+      evaluator = comparisonPredicate();
     } else {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case LEGAL_IDENTIFIER:{
-        nullPredicate();
+        evaluator = nullPredicate();
+{if ("" != null) return evaluator;}
         break;
         }
       default:
@@ -643,30 +665,41 @@ void selectQuery() throws ParseException {
         throw new ParseException();
       }
     }
+    throw new Error("Missing return statement in function");
 }
 
-  static final public void comparisonPredicate() throws ParseException {
-    compOperand();
-    jj_consume_token(COMP_OP);
-    compOperand();
+  static final public Evaluator comparisonPredicate() throws ParseException {CompOperand leftOperand;
+  CompOperand rightOperand;
+  Token operator;
+    leftOperand = compOperand();
+    operator = jj_consume_token(COMP_OP);
+    rightOperand = compOperand();
+{if ("" != null) return new ComparisonPredicate(leftOperand, rightOperand, operator.toString());}
+    throw new Error("Missing return statement in function");
 }
 
-  static final public void compOperand() throws ParseException {
+  static final public CompOperand compOperand() throws ParseException {DataValue dataValue;
+  CompOperand operand;
+  String tableName = null;
+  String columnName;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case INT_VALUE:
     case DATE_VALUE:
     case CHAR_STRING:{
-      comparableValue();
+      dataValue = comparableValue();
+operand = new CompOperand(dataValue);
       break;
       }
     case LEGAL_IDENTIFIER:{
       if (jj_2_3(2)) {
-        tableName();
+        tableName = tableName();
         jj_consume_token(PERIOD);
       } else {
         ;
       }
-      columnName();
+      columnName = columnName();
+operand = new CompOperand(tableName, columnName);
+{if ("" != null) return operand;}
       break;
       }
     default:
@@ -674,6 +707,7 @@ void selectQuery() throws ParseException {
       jj_consume_token(-1);
       throw new ParseException();
     }
+    throw new Error("Missing return statement in function");
 }
 
   static final public DataValue comparableValue() throws ParseException {DataValue dataValue;
@@ -712,22 +746,27 @@ DataType type = new DataType();
     throw new Error("Missing return statement in function");
 }
 
-  static final public void nullPredicate() throws ParseException {
+  static final public Evaluator nullPredicate() throws ParseException {String tableName = null;
+  String columnName;
+  boolean isNull;
     if (jj_2_4(2)) {
-      tableName();
+      tableName = tableName();
       jj_consume_token(PERIOD);
     } else {
       ;
     }
-    columnName();
-    nullOperation();
+    columnName = columnName();
+    isNull = nullOperation();
+{if ("" != null) return new NullPredicate(tableName, columnName, isNull);}
+    throw new Error("Missing return statement in function");
 }
 
-  static final public void nullOperation() throws ParseException {
+  static final public boolean nullOperation() throws ParseException {boolean isNull = true;
     jj_consume_token(IS);
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case NOT:{
       jj_consume_token(NOT);
+isNull = false;
       break;
       }
     default:
@@ -735,6 +774,8 @@ DataType type = new DataType();
       ;
     }
     jj_consume_token(NULL);
+{if ("" != null) return isNull;}
+    throw new Error("Missing return statement in function");
 }
 
 /// 2. for selectQuery
@@ -864,12 +905,89 @@ dataValue = new DataValue();
     finally { jj_save(3, xla); }
   }
 
+  static private boolean jj_3_4()
+ {
+    if (jj_3R_9()) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_1()
+ {
+    if (jj_3R_9()) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_17()
+ {
+    if (jj_scan_token(CHAR_STRING)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_9()
+ {
+    if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_3()
+ {
+    if (jj_3R_9()) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_2()
+ {
+    if (jj_3R_10()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_16()
+ {
+    if (jj_scan_token(INT_VALUE)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_10()
+ {
+    if (jj_3R_11()) return true;
+    if (jj_scan_token(COMP_OP)) return true;
+    if (jj_3R_11()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_14()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (!jj_3R_16()) return false;
+    jj_scanpos = xsp;
+    if (!jj_3R_17()) return false;
+    jj_scanpos = xsp;
+    if (jj_3R_18()) return true;
+    return false;
+  }
+
   static private boolean jj_3R_13()
  {
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3_3()) jj_scanpos = xsp;
     if (jj_3R_15()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_15()
+ {
+    if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_18()
+ {
+    if (jj_scan_token(DATE_VALUE)) return true;
     return false;
   }
 
@@ -886,83 +1004,6 @@ dataValue = new DataValue();
   static private boolean jj_3R_12()
  {
     if (jj_3R_14()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_16()
- {
-    if (jj_scan_token(INT_VALUE)) return true;
-    return false;
-  }
-
-  static private boolean jj_3_1()
- {
-    if (jj_3R_9()) return true;
-    if (jj_scan_token(PERIOD)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_14()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (!jj_3R_16()) return false;
-    jj_scanpos = xsp;
-    if (!jj_3R_17()) return false;
-    jj_scanpos = xsp;
-    if (jj_3R_18()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_9()
- {
-    if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_10()
- {
-    if (jj_3R_11()) return true;
-    if (jj_scan_token(COMP_OP)) return true;
-    if (jj_3R_11()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_18()
- {
-    if (jj_scan_token(DATE_VALUE)) return true;
-    return false;
-  }
-
-  static private boolean jj_3_3()
- {
-    if (jj_3R_9()) return true;
-    if (jj_scan_token(PERIOD)) return true;
-    return false;
-  }
-
-  static private boolean jj_3_4()
- {
-    if (jj_3R_9()) return true;
-    if (jj_scan_token(PERIOD)) return true;
-    return false;
-  }
-
-  static private boolean jj_3_2()
- {
-    if (jj_3R_10()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_15()
- {
-    if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_17()
- {
-    if (jj_scan_token(CHAR_STRING)) return true;
     return false;
   }
 

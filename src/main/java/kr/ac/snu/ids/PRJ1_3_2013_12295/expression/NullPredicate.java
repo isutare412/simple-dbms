@@ -10,12 +10,18 @@ public class NullPredicate implements Evaluator {
     private String columnName;
     private boolean isNull;
 
+    public NullPredicate(String tableName, String columnName, boolean isNull) {
+        this.tableName = tableName;
+        this.columnName = columnName;
+        this.isNull = isNull;
+    }
+
     public LogicValue evaluate(
             InstanceBuffer buffer,
             ArrayList<TableRow> row) throws DBException {
         ColumnSchema columnSchema = buffer.getColumnSchema(tableName, columnName);
         for (TableRow eachRow : row) {
-            DataValue dataValue = eachRow.getDataValue(columnSchema.getOrder());
+            DataValue dataValue = eachRow.getDataValue(columnSchema);
             if (dataValue != null) {
                 return dataValue.isNull() == isNull ? LogicValue.TRUE : LogicValue.FALSE;
             }
