@@ -11,6 +11,26 @@ public class TableInstance {
         rows = new ArrayList<>();
     }
 
+    public String getTableName() { return tableSchema.getName(); }
+
+    public ColumnSchema getColumnSchema(String columnName) {
+        return tableSchema.columns.get(columnName);
+    }
+
+    public ArrayList<DataValue> getValues(String columnName) {
+        ColumnSchema columnSchema = tableSchema.columns.get(columnName);
+        if (columnSchema == null) {
+            return null;
+        }
+
+        final int columnIndex = columnSchema.getOrder();
+        ArrayList<DataValue> values = new ArrayList<>();
+        for (TableRow row : rows) {
+            values.add(row.getDataValue(columnIndex));
+        }
+        return values;
+    }
+
     public ArrayList<TableRow> getRows() { return rows; }
 
     public boolean contains(TableRow target) {

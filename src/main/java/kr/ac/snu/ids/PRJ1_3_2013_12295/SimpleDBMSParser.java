@@ -62,6 +62,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       catch (Exception e)
       {
         System.out.println(e.getMessage());
+        e.printStackTrace();
         SimpleDBMSParser.ReInit(System.in);
         System.out.print(PROMPT);
       }

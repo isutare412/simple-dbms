@@ -24,7 +24,7 @@ public class DataValue {
         isNull = false;
     }
 
-    public LogicValue isSame(DataValue other) {
+    public LogicValue isEqual(DataValue other) {
         if (this.isNull || other.isNull) {
             return LogicValue.UNKNOWN;
         }

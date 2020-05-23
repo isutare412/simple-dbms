@@ -34,7 +34,7 @@ public class TableRow {
             int primaryKeyIndex = columnSchema.getOrder();
             DataValue lhsValue = dataValues.get(primaryKeyIndex);
             DataValue rhsValue = other.dataValues.get(primaryKeyIndex);
-            if (lhsValue.isSame(rhsValue) != LogicValue.TRUE) {
+            if (lhsValue.isEqual(rhsValue) != LogicValue.TRUE) {
                 return false;
             }
         }
@@ -52,7 +52,7 @@ public class TableRow {
             DataValue columnValue = columnValues.get(i);
 
             DataValue foundValue = getDataValue(columnName);
-            if (foundValue == null || foundValue.isSame(columnValue) != LogicValue.TRUE) {
+            if (foundValue == null || foundValue.isEqual(columnValue) != LogicValue.TRUE) {
                 return false;
             }
         }
@@ -61,6 +61,8 @@ public class TableRow {
 
     public String getKey() { return getKey(tableSchema.getName()); }
     public static String getKey(String tableName) { return "r-" + tableName; }
+
+    public String getTableName() { return tableSchema.getName(); }
     public ArrayList<DataValue> getDataValues() { return dataValues; }
 
     public DataValue getDataValue(String columnName) {
@@ -68,7 +70,7 @@ public class TableRow {
         if (columnSchema == null) {
             return null;
         }
-        return dataValues.get(columnSchema.getOrder());
+        return getDataValue(columnSchema.getOrder());
     }
 
     public DataValue getDataValue(ColumnSchema targetSchema) {
@@ -76,7 +78,11 @@ public class TableRow {
         if (columnSchema == null || !columnSchema.equals(targetSchema)) {
             return null;
         }
-        return dataValues.get(columnSchema.getOrder());
+        return getDataValue(columnSchema.getOrder());
+    }
+
+    public DataValue getDataValue(int columnIndex) {
+        return dataValues.get(columnIndex);
     }
 
     public HashMap<ColumnSchema, DataValue> getPrimaryKey() {
