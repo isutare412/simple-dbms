@@ -656,7 +656,6 @@ isNot = true;
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case LEGAL_IDENTIFIER:{
         evaluator = nullPredicate();
-{if ("" != null) return evaluator;}
         break;
         }
       default:
@@ -665,6 +664,7 @@ isNot = true;
         throw new ParseException();
       }
     }
+{if ("" != null) return evaluator;}
     throw new Error("Missing return statement in function");
 }
 
@@ -699,7 +699,6 @@ operand = new CompOperand(dataValue);
       }
       columnName = columnName();
 operand = new CompOperand(tableName, columnName);
-{if ("" != null) return operand;}
       break;
       }
     default:
@@ -707,6 +706,7 @@ operand = new CompOperand(tableName, columnName);
       jj_consume_token(-1);
       throw new ParseException();
     }
+{if ("" != null) return operand;}
     throw new Error("Missing return statement in function");
 }
 
@@ -794,19 +794,23 @@ String result = manager.insert(insertQuery);
     System.out.println(result);
 }
 
-  static final public void deleteQuery() throws ParseException {
+  static final public void deleteQuery() throws ParseException, DBException {DeleteQuery deleteQuery;
+  String tableName;
+  Evaluator evaluator = null;
     jj_consume_token(DELETE);
     jj_consume_token(FROM);
-    tableName();
+    tableName = tableName();
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case WHERE:{
-      whereClause();
+      evaluator = whereClause();
       break;
       }
     default:
       jj_la1[25] = jj_gen;
       ;
     }
+String result = manager.delete(new DeleteQuery(tableName, evaluator));
+    System.out.println(result);
 }
 
   static final public void insertColumnsAndSource(InsertQuery insertQuery) throws ParseException {ArrayList<String> columnNames;
@@ -905,10 +909,19 @@ dataValue = new DataValue();
     finally { jj_save(3, xla); }
   }
 
-  static private boolean jj_3_4()
+  static private boolean jj_3R_11()
  {
-    if (jj_3R_9()) return true;
-    if (jj_scan_token(PERIOD)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (!jj_3R_12()) return false;
+    jj_scanpos = xsp;
+    if (jj_3R_13()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_18()
+ {
+    if (jj_scan_token(DATE_VALUE)) return true;
     return false;
   }
 
@@ -919,15 +932,28 @@ dataValue = new DataValue();
     return false;
   }
 
-  static private boolean jj_3R_17()
+  static private boolean jj_3_4()
  {
-    if (jj_scan_token(CHAR_STRING)) return true;
+    if (jj_3R_9()) return true;
+    if (jj_scan_token(PERIOD)) return true;
     return false;
   }
 
   static private boolean jj_3R_9()
  {
     if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_2()
+ {
+    if (jj_3R_10()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_17()
+ {
+    if (jj_scan_token(CHAR_STRING)) return true;
     return false;
   }
 
@@ -938,35 +964,9 @@ dataValue = new DataValue();
     return false;
   }
 
-  static private boolean jj_3_2()
- {
-    if (jj_3R_10()) return true;
-    return false;
-  }
-
   static private boolean jj_3R_16()
  {
     if (jj_scan_token(INT_VALUE)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_10()
- {
-    if (jj_3R_11()) return true;
-    if (jj_scan_token(COMP_OP)) return true;
-    if (jj_3R_11()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_14()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (!jj_3R_16()) return false;
-    jj_scanpos = xsp;
-    if (!jj_3R_17()) return false;
-    jj_scanpos = xsp;
-    if (jj_3R_18()) return true;
     return false;
   }
 
@@ -979,25 +979,29 @@ dataValue = new DataValue();
     return false;
   }
 
+  static private boolean jj_3R_10()
+ {
+    if (jj_3R_11()) return true;
+    if (jj_scan_token(COMP_OP)) return true;
+    if (jj_3R_11()) return true;
+    return false;
+  }
+
   static private boolean jj_3R_15()
  {
     if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
     return false;
   }
 
-  static private boolean jj_3R_18()
- {
-    if (jj_scan_token(DATE_VALUE)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_11()
+  static private boolean jj_3R_14()
  {
     Token xsp;
     xsp = jj_scanpos;
-    if (!jj_3R_12()) return false;
+    if (!jj_3R_16()) return false;
     jj_scanpos = xsp;
-    if (jj_3R_13()) return true;
+    if (!jj_3R_17()) return false;
+    jj_scanpos = xsp;
+    if (jj_3R_18()) return true;
     return false;
   }
 

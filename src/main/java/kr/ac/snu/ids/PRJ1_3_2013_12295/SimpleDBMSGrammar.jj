@@ -696,13 +696,11 @@ Evaluator predicate():
 {
   //comparisonPredicate & nullPredicate can both start with tableName()< PERIOD >columnName()
   //so need to lookahead 4
-  LOOKAHEAD(4)
   (
+    LOOKAHEAD(4)
     evaluator = comparisonPredicate()
+  | evaluator = nullPredicate()
   )
-| (
-    evaluator = nullPredicate()
-  ) 
   {
     return evaluator;
   }
@@ -736,8 +734,7 @@ CompOperand compOperand():
     {
       operand = new CompOperand(dataValue);
     }
-  )
-| (
+  |
     (
       //tableName & columnName are same token <LEGAL_IDENITFIER >, so need to lookahead 2
       LOOKAHEAD(2)
@@ -748,10 +745,10 @@ CompOperand compOperand():
     {
       operand = new CompOperand(tableName, columnName);
     }
- )
- {
-   return operand;
- }
+  )
+  {
+    return operand;
+  }
 }
 
 DataValue comparableValue():
@@ -852,15 +849,23 @@ void insertQuery() throws DBException :
   }
 }
 
-void deleteQuery() :
-{}
+void deleteQuery() throws DBException :
+{
+  DeleteQuery deleteQuery;
+  String tableName;
+  Evaluator evaluator = null;
+}
 {
   < DELETE >
   < FROM > 
-  tableName()
+  tableName = tableName()
   (
-    whereClause()
+    evaluator = whereClause()
   )?
+  {
+    String result = manager.delete(new DeleteQuery(tableName, evaluator));
+    System.out.println(result);
+  }
 }
 
 void insertColumnsAndSource(InsertQuery insertQuery) :

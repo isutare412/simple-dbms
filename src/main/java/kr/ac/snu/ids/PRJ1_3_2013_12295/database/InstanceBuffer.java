@@ -12,31 +12,32 @@ public class InstanceBuffer {
     private ArrayList<TableInstance> instances;
     private HashMap<String, TableInstance> instanceLookup;
     private HashMap<String, String> alias;
-    private LinkedList<ArrayList<TableRow>> cartesianProduct;
+    private LinkedList<ArrayList<TableRow>> records;
 
     public InstanceBuffer(ArrayList<TableInstance> instances) {
         this.instances = instances;
+        instanceLookup = new HashMap<>();
         for (TableInstance instance : instances) {
             instanceLookup.put(instance.getTableName(), instance);
         }
         alias = new HashMap<>();
 
         // build cartesian product
-        cartesianProduct = new LinkedList<>();
+        records = new LinkedList<>();
         int expectedSize = 0;
         for (TableRow row : instances.get(0).getRows()) {
             ArrayList<TableRow> singleRow = new ArrayList<>();
             singleRow.add(row);
-            cartesianProduct.add(singleRow);
+            records.add(singleRow);
             expectedSize++;
         }
         for (int i = 1; i < instances.size(); i++) {
             ArrayList<TableRow> rows = instances.get(i).getRows();
-            cartesianProduct = cartesian(cartesianProduct, rows);
+            records = cartesian(records, rows);
             expectedSize *= rows.size();
         }
 
-        if (cartesianProduct.size() != expectedSize) {
+        if (records.size() != expectedSize) {
             System.err.println("Cartesian product size is not correct");
             System.exit(1);
         }
@@ -98,7 +99,11 @@ public class InstanceBuffer {
     }
 
     public void filter(Evaluator eval) throws DBException {
-        Iterator<ArrayList<TableRow>> iter = cartesianProduct.iterator();
+        if (eval == null) {
+            return;
+        }
+
+        Iterator<ArrayList<TableRow>> iter = records.iterator();
         while (iter.hasNext()) {
             ArrayList<TableRow> rows = iter.next();
             LogicValue result = eval.evaluate(this, rows);
@@ -106,6 +111,10 @@ public class InstanceBuffer {
                 iter.remove();
             }
         }
+    }
+
+    public LinkedList<ArrayList<TableRow>> getRecords() {
+        return records;
     }
 
     public int columnsWithName(String columnName) {

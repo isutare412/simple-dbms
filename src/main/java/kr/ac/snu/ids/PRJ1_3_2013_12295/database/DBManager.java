@@ -5,6 +5,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.lang.StringBuilder;
 
@@ -344,7 +346,7 @@ public class DBManager {
 
             // check the value of foreign key exists in the target table instance
             TableInstance targetInstance = getInstance(targetSchema);
-            if (!targetInstance.foreignKeyExists(referColumnNames, referColumnValues)) {
+            if (!targetInstance.valueExists(referColumnNames, referColumnValues)) {
                 throw new InsertReferentialIntegrityError();
             }
         }
@@ -353,6 +355,113 @@ public class DBManager {
         saveRow(newRow);
 
         return "The row is inserted";
+    }
+
+    public String delete(DeleteQuery query) throws DBException {
+        final String tableName = query.getTableName();
+        final TableSchema tableSchema = getTable(tableName);
+
+        // check the table exists
+        if (tableSchema == null) {
+            throw new NoSuchTable();
+        }
+
+        // read table instance from the database
+        TableInstance instance = getInstance(tableSchema);
+        if (instance == null) {
+            throw new NoSuchTable();
+        }
+
+        ArrayList<TableInstance> instances = new ArrayList<>();
+        instances.add(instance);
+
+        // build cartisian product from instances
+        InstanceBuffer buffer = new InstanceBuffer(instances);
+
+        // exclude all records that does not match where clause
+        buffer.filter(query.getEvalutor());
+
+        // read all table instances which reference the deleted table
+        HashMap<String, TableInstance> referTableInstances = new HashMap<>();
+        for (String referTableName : tableSchema.getReferencedBy()) {
+            TableSchema referTableSchema = getTable(referTableName);
+            TableInstance referTableInstance = getInstance(referTableSchema);
+            referTableInstances.put(referTableName, referTableInstance);
+        }
+
+        // check for referential constraint
+        LinkedList<ArrayList<TableRow>> deleteCandidates = buffer.getRecords();
+        Iterator<ArrayList<TableRow>> iter = deleteCandidates.iterator();
+        int canceledByConstraint = 0;
+        while (iter.hasNext()) {
+            TableRow tableRow = iter.next().get(0);
+            HashMap<ColumnSchema, DataValue> primaryKeys = tableRow.getPrimaryKey();
+
+            // will collect all column schemas which reference the row
+            ArrayList<ColumnSchema> referencingColumns = new ArrayList<>();
+            ArrayList<TableRow> referencingRows = new ArrayList<>();
+
+            // check if any table row is referencing deletion candidate rows
+            for (TableInstance referTable : referTableInstances.values()) {
+                // build reference data for existence check
+                ArrayList<String> columnNames = new ArrayList<>();
+                ArrayList<DataValue> columnValues = new ArrayList<>();
+                for (Entry<ColumnSchema, DataValue> entry : primaryKeys.entrySet()) {
+                    ColumnSchema referColumn = referTable.getColumnReferencing(entry.getKey());
+                    columnNames.add(referColumn.getName());
+                    columnValues.add(entry.getValue());
+                }
+
+                // collect column schemas which reference the row
+                TableRow matchingRow = referTable.getMatchingRow(columnNames, columnValues);
+                if (matchingRow != null) {
+                    referencingRows.add(matchingRow);
+                    for (String columnName : columnNames) {
+                        referencingColumns.add(referTable.getColumnSchema(columnName));
+                    }
+                }
+            }
+
+            // reference exists
+            if (referencingColumns.size() != 0) {
+                boolean isAllNullable = true;
+                for (ColumnSchema referColumn : referencingColumns) {
+                    isAllNullable &= referColumn.isNullable();
+                }
+
+                if (!isAllNullable) {
+                    // exclude deletion candidate row
+                    iter.remove();
+                    canceledByConstraint++;
+                } else {
+                    // update all foreign keys to null
+                    for (TableRow referRow : referencingRows) {
+                        deleteRow(referRow);
+                        for (ColumnSchema columnSchema : referencingColumns) {
+                            DataValue value = referRow.getDataValue(columnSchema);
+                            if (value != null) {
+                                value.setNull();
+                            }
+                        }
+                        saveRow(referRow);
+                    }
+                }
+            }
+        }
+
+        // delete cadidates
+        for (ArrayList<TableRow> singleRow : deleteCandidates) {
+            deleteRow(singleRow.get(0));
+        }
+
+        StringBuilder builder = new StringBuilder();
+        if (canceledByConstraint > 0) {
+            builder.append(canceledByConstraint);
+            builder.append(" row(s) not deleted due to referential integrity\n");
+        }
+        builder.append(deleteCandidates.size());
+        builder.append(" row(s) are deleted");
+        return builder.toString();
     }
 
     // close handles.
@@ -558,6 +667,30 @@ public class DBManager {
                 cursor = null;
             }
         }
+    }
+
+    // delete TableRow from database without any check. returns true if deleted.
+    private boolean deleteRow(TableRow tableRow) {
+        Cursor cursor = null;
+        try {
+            cursor = database.openCursor(null, null);
+            DatabaseEntry key = new DatabaseEntry(tableRow.getKey().getBytes("UTF-8"));
+            DatabaseEntry value = new DatabaseEntry(tableRow.serialize().getBytes("UTF-8"));
+
+            if (cursor.getSearchBoth(key, value, LockMode.DEFAULT) == OperationStatus.NOTFOUND) {
+                return false;
+            }
+            cursor.delete();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+                cursor = null;
+            }
+        }
+        return true;
     }
 
     // delete all tableName related key-values. returns true if any key-value is deleted.

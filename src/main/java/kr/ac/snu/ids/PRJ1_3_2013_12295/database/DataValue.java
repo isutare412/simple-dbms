@@ -69,6 +69,8 @@ public class DataValue {
         }
     }
 
+    public void setNull() { isNull = true; }
+
     public String serialize() {
         String str = "";
         if (isNull) {

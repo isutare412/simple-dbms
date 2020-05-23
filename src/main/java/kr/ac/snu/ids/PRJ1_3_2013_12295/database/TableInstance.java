@@ -31,7 +31,35 @@ public class TableInstance {
         return values;
     }
 
+    public TableSchema getTableSchema() { return tableSchema; }
     public ArrayList<TableRow> getRows() { return rows; }
+
+    public TableRow getMatchingRow(ArrayList<String> columnNames,
+            ArrayList<DataValue> columnValues) {
+        if (columnNames == null || columnValues == null ||
+                columnNames.size() != columnValues.size()) {
+            return null;
+        }
+
+        for (TableRow eachRow : rows) {
+            if (eachRow.contains(columnNames, columnValues)) {
+                return eachRow;
+            }
+        }
+        return null;
+    }
+
+    public ColumnSchema getColumnReferencing(ColumnSchema targetColumn) {
+        for (ColumnSchema columnSchema : tableSchema.columns.values()) {
+            Reference reference = columnSchema.getReference();
+            if (reference != null &&
+                    reference.getTableName().equals(targetColumn.getTableName()) &&
+                    reference.getColumnName().equals(targetColumn.getName())) {
+                return columnSchema;
+            }
+        }
+        return null;
+    }
 
     public boolean contains(TableRow target) {
         for (TableRow row : rows) {
@@ -42,19 +70,9 @@ public class TableInstance {
         return false;
     }
 
-    public boolean foreignKeyExists(ArrayList<String> columnNames,
+    public boolean valueExists(ArrayList<String> columnNames,
             ArrayList<DataValue> columnValues) {
-        if (columnNames == null || columnValues == null ||
-                columnNames.size() != columnValues.size()) {
-            return false;
-        }
-
-        for (TableRow eachRow : rows) {
-            if (eachRow.contains(columnNames, columnValues)) {
-                return true;
-            }
-        }
-        return false;
+        return getMatchingRow(columnNames, columnValues) != null;
     }
 
     public void readRow(String rawData) {

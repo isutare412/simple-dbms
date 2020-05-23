@@ -52,7 +52,8 @@ public class TableRow {
             DataValue columnValue = columnValues.get(i);
 
             DataValue foundValue = getDataValue(columnName);
-            if (foundValue == null || foundValue.isEqual(columnValue) != LogicValue.TRUE) {
+            if (foundValue == null || foundValue.isNull() ||
+                    foundValue.isEqual(columnValue) != LogicValue.TRUE) {
                 return false;
             }
         }
