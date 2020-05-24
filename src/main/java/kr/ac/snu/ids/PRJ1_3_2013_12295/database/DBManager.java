@@ -111,11 +111,11 @@ public class DBManager {
             table.registerForeignKey(referredTable, refers, referreds);
 
             // save reference data to referenced table
-            saveTable(referredTable);
+            saveTableSchema(referredTable);
         }
 
         // save created table model to database
-        saveTable(table);
+        saveTableSchema(table);
 
         return String.format("\'%s\' table is created", tableName);
     }
@@ -139,10 +139,11 @@ public class DBManager {
         for (String referencedName : referenceds) {
             TableSchema referredTable = getTable(referencedName);
             referredTable.removeReferencedBy(tableName);
-            saveTable(referredTable);
+            saveTableSchema(referredTable);
         }
 
         // delete table data from database
+        deleteRows(tableName);
         deleteTable(tableName);
 
         return String.format("\'%s\' table is dropped", tableName);
@@ -638,7 +639,7 @@ public class DBManager {
     }
 
     // save table to database without any check. if the table already exists, it is overwrited.
-    private void saveTable(TableSchema table) {
+    private void saveTableSchema(TableSchema table) {
         deleteTable(table.getName());
 
         // save table model to database
@@ -732,12 +733,17 @@ public class DBManager {
         return true;
     }
 
+    // delete all rows with the tableName from the database
+    private boolean deleteRows(String tableName) {
+        return deleteKeys(TableRow.getKey(tableName));
+    }
+
     // delete all tableName related key-values. returns true if any key-value is deleted.
     private boolean deleteTable(String tableName) {
         boolean deleted = false;
         deleted |= deleteKeys(TableSchema.getKey(tableName));
         deleted |= deleteKeys(ColumnSchema.getKey(tableName));
-        deleted |= deleteKeys(TableRow.getKey(tableName));
+        //deleted |= deleteKeys(TableRow.getKey(tableName));
         return deleted;
     }
 

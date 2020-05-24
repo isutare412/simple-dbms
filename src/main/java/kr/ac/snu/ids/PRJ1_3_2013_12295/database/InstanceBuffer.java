@@ -167,7 +167,7 @@ public class InstanceBuffer {
             String aliasName = selectedColumn.alias;
 
             if (aliasName != null) {
-                tableHeader.add(aliasName);
+                tableHeader.add(aliasName.toUpperCase());
             } else {
                 String newName = "";
                 if (needAlias.contains(columnName)) {
