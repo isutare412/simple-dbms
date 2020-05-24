@@ -737,6 +737,7 @@ public class DBManager {
         boolean deleted = false;
         deleted |= deleteKeys(TableSchema.getKey(tableName));
         deleted |= deleteKeys(ColumnSchema.getKey(tableName));
+        deleted |= deleteKeys(TableRow.getKey(tableName));
         return deleted;
     }
 
