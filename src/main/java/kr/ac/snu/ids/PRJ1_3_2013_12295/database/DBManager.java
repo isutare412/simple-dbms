@@ -775,7 +775,6 @@ public class DBManager {
 
     // returns pretty formated string from given header, body
     private String formatTable(ArrayList<String> header, ArrayList<ArrayList<String>> body) {
-        int tableWidth = 2 * 2 + 3 * (header.size() - 1);
         ArrayList<Integer> columnMaxSize = new ArrayList<>();
         for (int i = 0; i < header.size(); i++) {
             int maxSize = 0;

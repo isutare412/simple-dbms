@@ -140,6 +140,7 @@ public class InstanceBuffer {
         // find ColumnSchemas whose names are duplicated
         HashSet<String> needAlias = new HashSet<>();
         HashMap<String, Integer> columnWordCount = new HashMap<>();
+        HashMap<ColumnSchema, Integer> schemaCount = new HashMap<>();
         for (SelectedColumn selectedColumn : selectedColumns) {
             String tableName = selectedColumn.tableName;
             String columnName = selectedColumn.columnName;
@@ -157,6 +158,13 @@ public class InstanceBuffer {
             columnWordCount.put(columnSchema.getName(), count);
             if (count > 1) {
                 needAlias.add(columnSchema.getName());
+            }
+
+            count = schemaCount.getOrDefault(columnSchema, 0);
+            count++;
+            schemaCount.put(columnSchema, count);
+            if (count > 1) {
+                throw new SelectColumnResolveError(columnName);
             }
         }
 
