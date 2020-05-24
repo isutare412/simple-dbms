@@ -357,6 +357,45 @@ public class DBManager {
         return "The row is inserted";
     }
 
+    public String select(SelectQuery query) throws DBException {
+        // read table instances from the database
+        ArrayList<TableInstance> targetInstances = new ArrayList<>();
+        ArrayList<String> targetTableNames = query.getTableNames();
+        for (String tableName : targetTableNames) {
+            TableSchema tableSchema = getTable(tableName);
+            TableInstance tableInstace = getInstance(tableSchema);
+            if (tableInstace == null) {
+                throw new SelectTableExistenceError(tableName);
+            }
+            targetInstances.add(tableInstace);
+        }
+
+        // build cartisian product from instances
+        InstanceBuffer buffer = new InstanceBuffer(targetInstances);
+
+        // register alias to InstanceBuffer
+        for (Entry<String, String> entry : query.getAlias().entrySet()) {
+            buffer.registerAlias(entry.getKey(), entry.getValue());
+        }
+
+        // exclude all records that does not match where clause
+        buffer.filter(query.getEvalutor());
+
+        String formattedTable = null;
+        if (query.isAsterisk()) {
+            ArrayList<String> tableHeader = buffer.getTableHeader();
+            ArrayList<ArrayList<String>> tableBody = buffer.getTableBody();
+            formattedTable = formatTable(tableHeader, tableBody);
+        } else {
+            ArrayList<SelectedColumn> selectedColumns = query.getSelectedColumns();
+            ArrayList<String> tableHeader = buffer.getTableHeader(selectedColumns);
+            ArrayList<ArrayList<String>> tableBody = buffer.getTableBody(selectedColumns);
+            formattedTable = formatTable(tableHeader, tableBody);
+        }
+
+        return formattedTable;
+    }
+
     public String delete(DeleteQuery query) throws DBException {
         final String tableName = query.getTableName();
         final TableSchema tableSchema = getTable(tableName);
@@ -725,5 +764,60 @@ public class DBManager {
             }
         }
         return true;
+    }
+
+    // returns pretty formated string from given header, body
+    private String formatTable(ArrayList<String> header, ArrayList<ArrayList<String>> body) {
+        int tableWidth = 2 * 2 + 3 * (header.size() - 1);
+        ArrayList<Integer> columnMaxSize = new ArrayList<>();
+        for (int i = 0; i < header.size(); i++) {
+            int maxSize = 0;
+            int headerLength = header.get(i).length();
+            maxSize = maxSize > headerLength ? maxSize : headerLength;
+
+            for (ArrayList<String> line : body) {
+                int bodyLength = line.get(i).length();
+                maxSize = maxSize > bodyLength ? maxSize : bodyLength;
+            }
+            columnMaxSize.add(maxSize);
+        }
+
+        String divider = "+";
+        for (int i = 0; i < columnMaxSize.size(); i++) {
+            divider += String.format("-%s-+", "-".repeat(columnMaxSize.get(i)));
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append(divider + "\n");
+        builder.append('|');
+        for (int i = 0; i < header.size(); i++) {
+            String headerStr = header.get(i);
+            builder.append(' ');
+            builder.append(headerStr);
+            int sizeDiff = columnMaxSize.get(i) - headerStr.length();
+            if (sizeDiff > 0) {
+                builder.append(" ".repeat(sizeDiff));
+            }
+            builder.append(" |");
+        }
+        builder.append('\n');
+        builder.append(divider + "\n");
+
+        for (ArrayList<String> line : body) {
+            builder.append('|');
+            for (int i = 0; i < line.size(); i++) {
+                String columnStr = line.get(i);
+                builder.append(' ');
+                builder.append(columnStr);
+                int sizeDiff = columnMaxSize.get(i) - columnStr.length();
+                if (sizeDiff > 0) {
+                    builder.append(" ".repeat(sizeDiff));
+                }
+                builder.append(" |");
+            }
+            builder.append('\n');
+        }
+        builder.append(divider);
+        return builder.toString();
     }
 }

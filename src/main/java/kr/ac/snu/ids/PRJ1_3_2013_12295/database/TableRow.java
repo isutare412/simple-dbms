@@ -63,6 +63,7 @@ public class TableRow {
     public String getKey() { return getKey(tableSchema.getName()); }
     public static String getKey(String tableName) { return "r-" + tableName; }
 
+    public TableSchema getTableSchema() { return tableSchema; }
     public String getTableName() { return tableSchema.getName(); }
     public ArrayList<DataValue> getDataValues() { return dataValues; }
 
@@ -116,6 +117,19 @@ public class TableRow {
 
         for (int i = 0; i < dataValues.size(); i++) {
             builder.append(dataValues.get(i).serialize());
+            if (i != dataValues.size() - 1) {
+                builder.append(',');
+            }
+        }
+        return builder.toString();
+    }
+
+    public String serializeWithoutQuote() {
+        // format: DataValue1, DataValue2, ...
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < dataValues.size(); i++) {
+            builder.append(dataValues.get(i).serializeWithoutQuote());
             if (i != dataValues.size() - 1) {
                 builder.append(',');
             }

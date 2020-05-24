@@ -2,11 +2,14 @@ package kr.ac.snu.ids.PRJ1_3_2013_12295.database;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map.Entry;
 
 import kr.ac.snu.ids.PRJ1_3_2013_12295.exception.*;
 import kr.ac.snu.ids.PRJ1_3_2013_12295.expression.*;
+import kr.ac.snu.ids.PRJ1_3_2013_12295.query.SelectedColumn;
 
 public class InstanceBuffer {
     private ArrayList<TableInstance> instances;
@@ -41,6 +44,14 @@ public class InstanceBuffer {
             System.err.println("Cartesian product size is not correct");
             System.exit(1);
         }
+    }
+
+    private TableInstance getTableInstance(String name) {
+        String tableName = alias.get(name);
+        if (tableName != null)
+            return instanceLookup.get(tableName);
+        else
+            return instanceLookup.get(name);
     }
 
     private ColumnSchema getColumnSchema(String columnName) throws DBException {
@@ -84,6 +95,134 @@ public class InstanceBuffer {
         return columnSchema;
     }
 
+    public LinkedList<ArrayList<TableRow>> getRecords() {
+        return records;
+    }
+
+    public ArrayList<String> getTableHeader() {
+        // find ColumnSchemas whose names are duplicated
+        HashSet<String> needAlias = new HashSet<>();
+        HashMap<String, Integer> columnWordCount = new HashMap<>();
+        for (TableInstance instance : instances) {
+            for (ColumnSchema columnSchema : instance.getTableSchema().getOrderedColumns()) {
+                int count = columnWordCount.getOrDefault(columnSchema.getName(), 0);
+                count++;
+                columnWordCount.put(columnSchema.getName(), count);
+                if (count > 1) {
+                    needAlias.add(columnSchema.getName());
+                }
+            }
+        }
+
+        ArrayList<String> tableHeader = new ArrayList<>();
+        for (TableInstance instance : instances) {
+            for (ColumnSchema columnSchema : instance.getTableSchema().getOrderedColumns()) {
+                String colString = "";
+                if (needAlias.contains(columnSchema.getName())) {
+                    String tableName = columnSchema.getTableName();
+                    for (Entry<String, String> entry : alias.entrySet()) {
+                        if (entry.getValue().equals(columnSchema.getTableName())) {
+                            tableName = entry.getKey();
+                            break;
+                        }
+                    }
+                    colString += String.format("%s.", solveAlias(tableName));
+                }
+                colString += columnSchema.getName();
+                tableHeader.add(colString.toUpperCase());
+            }
+        }
+        return tableHeader;
+    }
+
+    public ArrayList<String> getTableHeader(
+            ArrayList<SelectedColumn> selectedColumns) throws DBException {
+        // find ColumnSchemas whose names are duplicated
+        HashSet<String> needAlias = new HashSet<>();
+        HashMap<String, Integer> columnWordCount = new HashMap<>();
+        for (SelectedColumn selectedColumn : selectedColumns) {
+            String tableName = selectedColumn.tableName;
+            String columnName = selectedColumn.columnName;
+
+            // check column existence
+            ColumnSchema columnSchema = null;
+            try {
+                columnSchema = getColumnSchema(tableName, columnName);
+            } catch (DBException e) {
+                throw new SelectColumnResolveError(columnName);
+            }
+
+            int count = columnWordCount.getOrDefault(columnSchema.getName(), 0);
+            count++;
+            columnWordCount.put(columnSchema.getName(), count);
+            if (count > 1) {
+                needAlias.add(columnSchema.getName());
+            }
+        }
+
+        ArrayList<String> tableHeader = new ArrayList<>();
+        for (SelectedColumn selectedColumn : selectedColumns) {
+            String tableName = selectedColumn.tableName;
+            String columnName = selectedColumn.columnName;
+            String aliasName = selectedColumn.alias;
+
+            if (aliasName != null) {
+                tableHeader.add(aliasName);
+            } else {
+                String newName = "";
+                if (needAlias.contains(columnName)) {
+                    newName += String.format("%s.", solveAlias(tableName));
+                }
+                newName += columnName;
+                tableHeader.add(newName.toUpperCase());
+            }
+        }
+
+        return tableHeader;
+    }
+
+    public ArrayList<ArrayList<String>> getTableBody() {
+        ArrayList<ArrayList<String>> tableBody = new ArrayList<>();
+        for (ArrayList<TableRow> record : records) {
+            ArrayList<String> recordLine = new ArrayList<>();
+            for (TableRow row : record) {
+                for (DataValue value : row.getDataValues()) {
+                    recordLine.add(value.serializeWithoutQuote());
+                }
+            }
+            tableBody.add(recordLine);
+        }
+        return tableBody;
+    }
+
+    public ArrayList<ArrayList<String>> getTableBody(
+            ArrayList<SelectedColumn> selectedColumns) {
+        HashSet<ColumnSchema> toSelect = new HashSet<>();
+        try {
+            for (SelectedColumn selectedColumn : selectedColumns) {
+                ColumnSchema columnSchema =
+                    getColumnSchema(selectedColumn.tableName, selectedColumn.columnName);
+                toSelect.add(columnSchema);
+            }
+        } catch (DBException e) {
+            return null;
+        }
+
+        ArrayList<ArrayList<String>> tableBody = new ArrayList<>();
+        for (ArrayList<TableRow> record : records) {
+            ArrayList<String> recordLine = new ArrayList<>();
+            for (TableRow row : record) {
+                for (ColumnSchema columnSchema : row.getTableSchema().getOrderedColumns()) {
+                    if (toSelect.contains(columnSchema)) {
+                        recordLine.add(row.getDataValue(columnSchema).serializeWithoutQuote());
+                    }
+                }
+            }
+            tableBody.add(recordLine);
+        }
+        return tableBody;
+    }
+
     public void registerAlias(String origin, String alias) {
         if (!instanceLookup.containsKey(origin)) {
             return;
@@ -111,10 +250,6 @@ public class InstanceBuffer {
                 iter.remove();
             }
         }
-    }
-
-    public LinkedList<ArrayList<TableRow>> getRecords() {
-        return records;
     }
 
     public int columnsWithName(String columnName) {

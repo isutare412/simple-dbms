@@ -516,75 +516,112 @@ String columnName() :
 
 /// 2. for selectQuery
 
-void selectQuery() :
-{}
+void selectQuery() throws DBException :
+{
+  SelectQuery selectQuery;
+}
 {
   < SELECT >
-  selectList()
-  tableExpression()
+  selectQuery = selectList()
+  tableExpression(selectQuery)
+  {
+    String result = manager.select(selectQuery);
+    System.out.println(result);
+  }
 }
 
-void selectList() :
-{}
+SelectQuery selectList() :
 {
-  < ASTERISK >
-| (
-    selectedColumn()
-    (
-      < COMMA >
-      selectedColumn()
-    )*
-  )
+  SelectQuery selectQuery = new SelectQuery();
 }
-void selectedColumn() :
-{}
+{
+  (
+    < ASTERISK >
+    {
+      selectQuery.setAsterisk();
+    }
+  | (
+      selectedColumn(selectQuery)
+      (
+        < COMMA >
+        selectedColumn(selectQuery)
+      )*
+    )
+  )
+  {
+    return selectQuery;
+  }
+}
+void selectedColumn(SelectQuery selectQuery) :
+{
+  String tableName = null;
+  String columnName = null;
+  String alias = null;
+}
 {
   (
     //tableName & columnName are same token <LEGAL_IDENITFIER >, so need to lookahead 2
     LOOKAHEAD(2)
-    tableName()
+    tableName = tableName()
     < PERIOD >
   )?
-  columnName()
+  columnName = columnName()
   (
     < AS >
-    columnName()
+    alias = columnName()
   )?
+  {
+    selectQuery.addSelectedColumn(new SelectedColumn(tableName, columnName, alias));
+  }
 }
 
-void tableExpression():
-{}
+void tableExpression(SelectQuery selectQuery):
 {
-  fromClause()
+  Evaluator evaluator;
+}
+{
+  fromClause(selectQuery)
   (
-    whereClause()
+    evaluator = whereClause()
+    {
+      selectQuery.setEvaluator(evaluator);
+    }
   )?
 }
 
-void fromClause():
+void fromClause(SelectQuery selectQuery):
 {}
 {
   < FROM >
-  tableReferenceList()
+  tableReferenceList(selectQuery)
 }
 
-void tableReferenceList():
+void tableReferenceList(SelectQuery selectQuery):
 {}
 {
-  referedTable()
+  referedTable(selectQuery)
   (
     < COMMA >
-    referedTable()
+    referedTable(selectQuery)
   )*
 }
 
-void referedTable():
-{}
+void referedTable(SelectQuery selectQuery):
 {
-  tableName()
+  String tableName = null;
+  String alias = null;
+}
+{
+  tableName = tableName()
+  {
+    selectQuery.addFromTable(tableName);
+  }
   (
     < AS >
-    tableName()
+    alias = tableName()
+    {
+      selectQuery.addAlias(tableName, alias);
+    }
   )?
 }
 

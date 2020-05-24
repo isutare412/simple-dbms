@@ -94,6 +94,28 @@ public class DataValue {
         return str;
     }
 
+    public String serializeWithoutQuote() {
+        String str = "";
+        if (isNull) {
+            return DataValue.nullToken;
+        }
+
+        switch (type.baseType) {
+            case INT:
+                str = String.valueOf(intValue);
+                break;
+            case CHAR:
+                str = charValue;
+                break;
+            case DATE:
+                str = dateValue.toString();
+                break;
+            default:
+                break;
+        }
+        return str;
+    }
+
     public void deserialize(String rawData) {
         if (rawData.equals(DataValue.nullToken)) {
             isNull = true;
